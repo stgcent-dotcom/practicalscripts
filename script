@@ -1,0 +1,183 @@
+--[[\x50\x72\x61\x63\x74\x69\x63\x61\x6c\x20\x53\x63\x72\x69\x70\x74\x73\x20\x2d\x20\x4f\x62\x66\x75\x73\x63\x61\x74\x65\x64]]
+local _0x1a = game; local _0x2b = _0x1a:GetService('Players'); local _0x3c = _0x1a:GetService('ReplicatedStorage'); local _0x4d = _0x1a:GetService('RunService'); local _0x5e = _0x1a:GetService('VirtualInputManager');
+local _0x6f = _0x2b.LocalPlayer; local _0x70 = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
+local _0x81 = loadstring(_0x1a:HttpGet(_0x70 .. 'Library.lua'))()
+local _0x92 = loadstring(_0x1a:HttpGet(_0x70 .. 'addons/ThemeManager.lua'))()
+local _0xa3 = loadstring(_0x1a:HttpGet(_0x70 .. 'addons/SaveManager.lua'))()
+local _0xb4, _0xc5, _0xd6, _0xe7, _0xf8 = 0, nil, nil, false, nil
+pcall(function() _0xf8 = _0x3c:WaitForChild('Aero', 10):WaitForChild('AeroRemoteServices', 10):WaitForChild('InputService', 10):WaitForChild('Shoot', 5) end)
+local function _0x19(_0x2a, _0x3b, _0x4c) if _0x2a then pcall(function() _0x2a:FireServer({ [_0x3b] = _0x4c }) end) end end
+local function _0x28(_0x39) if typeof(_0x39) ~= 'string' or _0x39 == '' then return false end local _0x4a = _0x6f.Character return _0x39:lower() == _0x6f.Name:lower() or _0x39:lower() == _0x6f.DisplayName:lower() or (_0x4a and _0x39:lower() == _0x4a.Name:lower()) end
+local function _0x37() local _0x48 = workspace:FindFirstChild('Characters') if _0x48 then local _0x59 = _0x48:FindFirstChild(_0x6f.Name) if _0x59 then return _0x59 end for _, _0x6a in ipairs(_0x48:GetChildren()) do if _0x28(_0x6a.Name) then return _0x6a end end end return _0x6f.Character end
+local function _0x46() local _0x57 = _0x37() return _0x57 and _0x57:FindFirstChildOfClass('Humanoid') end
+local _0x55, _0x64
+local function _0x73(_0x82) local _0x93 = _0x46() if not _0x93 then return end if _0x64 ~= _0x93 then _0x64, _0x55 = _0x93, nil end if not _0x55 then local _0xa4, _0xb5 = pcall(function() return _0x93.HipHeight end) _0x55 = _0xa4 and _0xb5 or 2 end local _0xc6 = _0x82 and Options.HeightValue.Value or _0x55 pcall(function() if math.abs(_0x93.HipHeight - _0xc6) > 0.001 then _0x93.HipHeight = _0xc6 end end) end
+local _0x84 = _0x81:CreateWindow({ Title = '\x50\x72\x61\x63\x74\x69\x63\x61\x6c\x20\x53\x63\x72\x69\x70\x74\x73', Center = true, AutoShow = true, TabPadding = 8, MenuFadeTime = 0.2 })
+local _0x95 = { Main = _0x84:AddTab('\x4d\x61\x69\x6e'), ['UI Settings'] = _0x84:AddTab('\x55\x49\x20\x53\x65\x74\x74\x69\x6e\x67\x73') }
+local _0xa6 = _0x95.Main:AddLeftGroupbox('\x46\x65\x61\x74\x75\x72\x65\x73')
+_0xa6:AddToggle('AutoGuard', { Text = '\x4e\x61\x74\x69\x76\x65\x20\x43\x6f\x6e\x74\x65\x78\x74\x20\x41\x75\x74\x6f\x2d\x47\x75\x61\x72\x64\x20\x28\x47\x29', Default = false, Tooltip = '\x48\x6f\x6f\x6b\x73\x20\x69\x6e\x74\x6f\x20\x67\x61\x6d\x65\x20\x63\x6f\x6e\x74\x65\x78\x74\x20\x73\x74\x61\x74\x65\x20\x74\x6f\x20\x72\x65\x70\x6c\x69\x63\x61\x74\x65\x20\x6d\x61\x6e\x75\x61\x6c\x20\x47\x20\x6b\x65\x79\x20\x68\x6f\x6c\x64\x69\x6e\x67\x20\x73\x65\x63\x75\x72\x65\x6c\x79' })
+_0xa6:AddDivider()
+_0xa6:AddToggle('HeightExtender', { Text = '\x48\x65\x69\x67\x68\x74\x20\x45\x78\x74\x65\x6e\x64\x65\x72', Default = false })
+_0xa6:AddSlider('HeightValue', { Text = '\x48\x69\x70\x20\x68\x65\x69\x67\x68\x74', Default = 5, Min = 1, Max = 15, Rounding = 2 })
+_0xa6:AddLabel('\x48\x65\x69\x67\x68\x74\x20\x6b\x65\x79'):AddKeyPicker('HeightKey', { Default = '\x48', SyncToggleState = true, Mode = '\x54\x6f\x67\x67\x6c\x65', Text = '\x48\x65\x69\x67\x68\x74' })
+_0xa6:AddDivider()
+_0xa6:AddToggle('SmartDefense', { Text = '\x53\x74\x75\x64\x2d\x41\x68\x65\x61\x64\x20\x43\x6c\x61\x6d\x70\x20\x44\x65\x66\x65\x6e\x73\x65', Default = false, Tooltip = '\x53\x74\x61\x79\x73\x20\x73\x74\x72\x69\x63\x74\x6c\x79\x20\x70\x6c\x61\x6e\x74\x65\x64\x20\x61\x68\x65\x61\x64\x20\x6f\x66\x20\x74\x68\x65\x20\x62\x61\x6c\x6c\x20\x63\x61\x72\x72\x69\x65\x72\x20\x74\x6f\x77\x61\x72\x64\x73\x20\x74\x68\x65\x20\x68\x6f\x6f\x70\x20\x77\x69\x74\x68\x20\x61\x20\x73\x61\x66\x65\x20\x73\x74\x75\x64\x20\x64\x69\x73\x74\x61\x6e\x63\x65\x20\x74\x6f\x20\x70\x72\x65\x76\x65\x6e\x74\x20\x64\x72\x69\x76\x69\x6e\x67\x20\x70\x61\x73\x74' })
+_0xa6:AddSlider('StudGap', { Text = '\x49\x6e\x2d\x46\x72\x6f\x6e\x74\x20\x53\x74\x75\x64\x20\x47\x61\x70', Default = 3.5, Min = 1.5, Max = 6.0, Rounding = 1, Tooltip = '\x45\x78\x61\x63\x74\x20\x73\x74\x75\x64\x20\x62\x75\x66\x66\x65\x72\x20\x64\x69\x73\x74\x61\x6e\x63\x65\x20\x74\x6f\x20\x73\x74\x61\x79\x20\x69\x6e\x20\x66\x72\x6f\x6e\x74\x20\x6f\x66\x20\x74\x68\x65\x6d\x20\x77\x69\x74\x68\x6f\x75\x74\x20\x63\x6c\x69\x70\x70\x69\x6e\x67\x20\x69\x6e\x73\x69\x64\x65' })
+_0xa6:AddSlider('PredictionStrength', { Text = '\x49\x6e\x73\x74\x61\x6e\x74\x20\x43\x72\x6f\x73\x73\x6f\x76\x65\x72\x20\x4c\x65\x61\x64', Default = 0.40, Min = 0.00, Max = 1.00, Rounding = 2, Tooltip = '\x49\x6e\x73\x74\x61\x6e\x74\x6c\x79\x20\x74\x72\x61\x63\x6b\x73\x20\x6c\x65\x66\x74\x2f\x72\x69\x67\x68\x74\x20\x73\x68\x61\x72\x70\x20\x63\x75\x74\x73\x20\x77\x69\x74\x68\x20\x7a\x65\x72\x6f\x20\x64\x65\x6c\x61\x79' })
+local _0xb7 = _0x95.Main:AddRightGroupbox('\x4d\x65\x74\x65\x72\x20\x41\x75\x74\x6f\x2d\x53\x68\x6f\x6f\x74')
+_0xb7:AddToggle('AutoMeterShoot', { Text = '\x45\x6e\x61\x62\x6c\x65\x20\x41\x75\x74\x6f\x20\x4d\x65\x74\x65\x72', Default = false, Tooltip = '\x41\x75\x74\x6f\x2d\x72\x65\x6c\x65\x61\x73\x65\x73\x20\x74\x68\x65\x20\x73\x68\x6f\x74\x20\x77\x68\x65\x6e\x20\x74\x68\x65\x20\x6d\x65\x74\x65\x72\x20\x72\x65\x61\x63\x68\x65\x73\x20\x74\x68\x65\x20\x74\x61\x72\x67\x65\x74\x2e' })
+_0xb7:AddSlider('MeterTarget', { Text = '\x54\x61\x72\x67\x65\x74\x20\x56\x61\x6c\x75\x65', Default = -1.38, Min = -1.50, Max = -0.50, Rounding = 3, Tooltip = '\x54\x68\x65\x20\x65\x78\x61\x63\x74\x20\x76\x61\x6c\x75\x65\x20\x77\x68\x65\x72\x65\x20\x74\x68\x65\x20\x6d\x65\x74\x65\x72\x20\x69\x73\x20\x67\x72\x65\x65\x6e\x2e' })
+_0xb7:AddSlider('MeterLead', { Text = '\x4c\x65\x61\x64\x20\x28\x50\x69\x6e\x67\x20\x43\x6f\x6d\x70\x29', Default = 0.05, Min = 0.00, Max = 0.20, Rounding = 3, Tooltip = '\x46\x69\x72\x65\x73\x20\x65\x61\x72\x6c\x69\x65\x72\x20\x74\x6f\x20\x63\x6f\x6d\x70\x65\x6e\x73\x61\x74\x65\x20\x66\x6f\x72\x20\x69\x6e\x70\x75\x74\x20\x6c\x61\x67\x2e\x20\x48\x69\x67\x68\x65\x72\x20\x3d\x20\x65\x61\x72\x6c\x69\x65\x72\x2e' })
+local _0xc8 = _0xb7:AddLabel('\x4c\x69\x76\x65\x20\x56\x61\x6c\x75\x65\x3a\x20\x6e\x2f\x61', true)
+local function _0xd9() local _0xe9 = _0x37() if not _0xe9 then return nil end local _0xfa = _0xe9:FindFirstChild('HumanoidRootPart') if not _0xfa then return nil end local _0x0b = _0xfa:FindFirstChild('VerticalMeter') if not _0x0b then return nil end local _0x1c = _0x0b:FindFirstChild('Meter_Fill') if not _0x1c then return nil end return _0x1c:FindFirstChild('FillGradient') end
+local _0xea = false
+_0x4d.RenderStepped:Connect(function()
+    if _0x81.Unloaded then return end
+    local _0xf9 = _0xd9()
+    if _0xf9 then
+        _0xb4 = _0xf9.Offset.Y
+        local _0x0a = Options.MeterTarget.Value + Options.MeterLead.Value
+        _0xc8:SetText(('Live Value: %.4f\nFire Point: %.4f'):format(_0xb4, _0x0a))
+        if not Toggles.AutoMeterShoot.Value then return end
+        if _0xb4 <= _0x0a and not _0xea then
+            _0xea = true
+            if _0xf8 then _0x19(_0xf8, 'Shoot', false) end
+            task.delay(0.5, function() _0xea = false end)
+        elseif _0xb4 > -0.5 then
+            _0xea = false
+        end
+    else
+        _0xc8:SetText('Live Value: n/a\nFire Point: n/a')
+        _0xea = false
+    end
+end)
+local function _0xfb(_0x0c)
+    local _0x1d = workspace:FindFirstChild('Hoops') or workspace:FindFirstChild('Goals') or workspace:FindFirstChild('Court')
+    local _0x2e, _0x3f = nil, math.huge
+    if _0x1d then
+        for _, _0x4f in ipairs(_0x1d:GetDescendants()) do
+            if _0x4f:IsA('BasePart') and (_0x4f.Name:lower():find('goal') or _0x4f.Name:lower():find('hoop') or _0x4f.Name:lower():find('rim')) then
+                local _0x50 = (_0x4f.Position - _0x0c).Magnitude
+                if _0x50 < _0x3f then _0x3f = _0x50; _0x2e = _0x4f.Position end
+            end
+        end
+    end
+    return _0x2e or Vector3.new(0, 10, 0)
+end
+local _0x0d, _0x1e, _0x2f, _0x30, _0x41, _0x52 = false, false, false, false, false, Vector3.zero
+local _0x63 = 0
+local function _0x72(_0x83, _0x94) pcall(function() if _0x94 then _0x5e:SendKeyEvent(true, _0x83, false, game) else _0x5e:SendKeyEvent(false, _0x83, false, game) end end) end
+_0x4d.RenderStepped:Connect(function()
+    if _0x81.Unloaded then return end
+    local _0x93 = Toggles.AutoGuard.Value
+    if _0x93 ~= _0x1e then
+        _0x1e = _0x93
+        if _0x93 then pcall(function() _0x5e:SendKeyEvent(true, Enum.KeyCode.G, false, game) end) else pcall(function() _0x5e:SendKeyEvent(false, Enum.KeyCode.G, false, game) end) end
+    elseif _0x93 then
+        pcall(function() _0x5e:SendKeyEvent(true, Enum.KeyCode.G, false, game) end)
+    end
+    if not Toggles.SmartDefense.Value then
+        if _0x0d then _0x72(Enum.KeyCode.W, false); _0x0d = false end
+        if _0x1f then _0x72(Enum.KeyCode.S, false); _0x1f = false end
+        if _0x20 then _0x72(Enum.KeyCode.A, false); _0x20 = false end
+        if _0x21 then _0x72(Enum.KeyCode.D, false); _0x21 = false end
+        return
+    end
+    local _0xa4 = _0x37()
+    if not _0xa4 then return end
+    local _0xb5 = _0xa4:FindFirstChild('HumanoidRootPart')
+    if not _0xb5 then return end
+    local _0xc6 = nil
+    local _0xd7 = workspace:FindFirstChild('Basketballs')
+    if _0xd7 then
+        for _, _0xe8 in ipairs(_0xd7:GetChildren()) do
+            local _0xf9 = _0xe8:FindFirstChild('Character')
+            local _0x0a = _0xf9 and _0xf9.Value and _0xf9.Value.Name
+            if _0x0a and not _0x28(_0x0a) then
+                local _0x1b = workspace:FindFirstChild('Characters')
+                if _0x1b then
+                    for _, _0x2c in ipairs(_0x1b:GetChildren()) do
+                        if _0x2c.Name:lower() == _0x0a:lower() then _0xc6 = _0x2c:FindFirstChild('HumanoidRootPart'); break end
+                    end
+                end
+            end
+        end
+    end
+    if not _0xc6 then
+        local _0x3d = math.huge
+        local _0x4e = workspace:FindFirstChild('Characters')
+        if _0x4e then
+            for _, _0x5f in ipairs(_0x4e:GetChildren()) do
+                if _0x5f ~= _0xa4 then
+                    local _0x70 = _0x5f:FindFirstChild('HumanoidRootPart')
+                    if _0x70 then
+                        local _0x81 = (_0x70.Position - _0xb5.Position).Magnitude
+                        if _0x81 < _0x3d then _0x3d = _0x81; _0xc6 = _0x70 end
+                    end
+                end
+            end
+        end
+    end
+    if _0xc6 then
+        local _0x3e = tick()
+        local _0x4f = math.clamp(_0x3e - _0x63, 0.001, 0.1)
+        _0x63 = _0x3e
+        local _0x60 = _0xc6.Position
+        local _0x71 = (_0x60 - _0x52) / _0x4f
+        _0x52 = _0x60
+        local _0x82 = Options.PredictionStrength.Value
+        local _0x93 = _0x60 + (Vector3.new(_0x71.X, 0, _0x71.Z) * _0x82)
+        local _0xa4 = _0xfb(_0xb5.Position)
+        local _0xb5_vec = (_0xa4 - _0x93)
+        local _0xc6_dist = _0xb5_vec.Magnitude
+        local _0xd7_dir = (_0xc6_dist > 1) and _0xb5_vec.Unit or Vector3.new(0, 0, 1)
+        local _0xe8 = Options.StudGap.Value
+        local _0xf9 = _0x93 + (_0xd7_dir * math.min(_0xe8, _0xc6_dist))
+        _0xf9 = Vector3.new(_0xf9.X, _0xb5.Position.Y, _0xf9.Z)
+        local _0x0a = workspace.CurrentCamera
+        local _0x1b = (_0xf9 - _0xb5.Position)
+        local _0x2c = _0x1b.Magnitude
+        if _0x2c > 0.8 then
+            _0x1b = _0x1b.Unit
+            local _0x3d = _0x0a.CFrame
+            local _0x4e = Vector3.new(_0x3d.LookVector.X, 0, _0x3d.LookVector.Z).Unit
+            local _0x5f = Vector3.new(_0x3d.RightVector.X, 0, _0x3d.RightVector.Z).Unit
+            local _0x70 = _0x1b:Dot(_0x4e)
+            local _0x81 = _0x1b:Dot(_0x5f)
+            local _0x92 = _0x70 > 0.05
+            local _0xa3 = _0x70 < -0.05
+            local _0xb4 = _0x81 > 0.05
+            local _0xc5 = _0x81 < -0.05
+            if _0x92 ~= _0x0d then _0x72(Enum.KeyCode.W, _0x92); _0x0d = _0x92 end
+            if _0xa3 ~= _0x1f then _0x72(Enum.KeyCode.S, _0xa3); _0x1f = _0xa3 end
+            if _0xb4 ~= _0x21 then _0x72(Enum.KeyCode.D, _0xb4); _0x21 = _0xb4 end
+            if _0xc5 ~= _0x20 then _0x72(Enum.KeyCode.A, _0xc5); _0x20 = _0xc5 end
+        else
+            if _0x0d then _0x72(Enum.KeyCode.W, false); _0x0d = false end
+            if _0x1f then _0x72(Enum.KeyCode.S, false); _0x1f = false end
+            if _0x20 then _0x72(Enum.KeyCode.A, false); _0x20 = false end
+            if _0x21 then _0x72(Enum.KeyCode.D, false); _0x21 = false end
+        end
+    end
+end)
+Toggles.HeightExtender:OnChanged(function() _0x73(Toggles.HeightExtender.Value) end)
+Options.HeightValue:OnChanged(function() if Toggles.HeightExtender.Value then _0x73(true) end end)
+Toggles.AutoGuard:OnChanged(function() if not Toggles.AutoGuard.Value then _0x72(Enum.KeyCode.G, false); _0x1e = false end end)
+_0x6f.CharacterAdded:Connect(function() task.wait(1); _0x64, _0x55 = nil, nil; if Toggles.HeightExtender.Value then _0x73(true) end end)
+task.spawn(function() while true do task.wait(0.25); if _0x81.Unloaded then break end; if Toggles.HeightExtender.Value then _0x73(true) end end end)
+_0x81:SetWatermarkVisibility(true)
+_0x81:SetWatermark('\x48\x6f\x6f\x70\x73')
+_0x81.KeybindFrame.Visible = true
+_0x81:OnUnload(function() _0x72(Enum.KeyCode.G, false); if _0xf8 then _0x19(_0xf8, '\x53\x68\x6f\x6f\x74', false) end; _0x73(false); _0x81.Unloaded = true end)
+local _0x3e = _0x95['\x55\x49\x20\x53\x65\x74\x74\x69\x6e\x67\x73']:AddLeftGroupbox('\x4d\x65\x6e\x75')
+_0x3e:AddButton('\x55\x6e\x6c\x6f\x61\x64', function() _0x81:Unload() end)
+_0x3e:AddLabel('\x4d\x65\x6e\x7f\x20\x62\x69\x6e\x64'):AddKeyPicker('\x4d\x65\x6e\x75\x4b\x65\x79\x62\x69\x6e\x64', { Default = '\x45\x6e\x64', NoUI = true, Text = '\x4d\x65\x6e\x75\x20\x6b\x65\x79\x62\x69\x6e\x64' })
+_0x81.ToggleKeybind = Options.MenuKeybind
+_0x92:SetLibrary(_0x81); _0xa3:SetLibrary(_0x81)
+_0xa3:IgnoreThemeSettings()
+_0xa3:SetIgnoreIndexes({ '\x4d\x65\x6e\x75\x4b\x65\x79\x62\x69\x6e\x64' })
+_0x92:SetFolder('\x4d\x79\x53\x63\x72\x69\x70\x74\x48\x75\x62'); _0xa3:SetFolder('\x4d\x79\x53\x63\x72\x69\x70\x74\x48\x75\x62\x2f\x68\x6f\x6f\x70\x73')
+_0xa3:BuildConfigSection(_0x95['\x55\x49\x20\x53\x65\x74\x74\x69\x6e\x67\x73'])
+_0x92:ApplyToTab(_0x95['\x55\x49\x20\x53\x65\x74\x74\x69\x6e\x67\x73'])
+_0xa3:LoadAutoloadConfig()
+print('\x5b\x48\x6f\x6f\x70\x73\x5d\x20\x6c\x6f\x61\x64\x65\x64\x20\x7c\x20\x6d\x65\x6e\x75\x3a\x20\x45\x6e\x6d')
