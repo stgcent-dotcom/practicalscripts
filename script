@@ -1,5 +1,5 @@
 --=====================================================
---  Hoops | Practical Scripts (Lite Version) - Obfuscated
+--  Hoops | Practical Scripts (Lite Version) - Obfuscated & Secured
 --=====================================================
 
 local _0x1a = game
@@ -9,6 +9,47 @@ local _0x1d = _0x1b(_0x1a, 'ReplicatedStorage')
 local _0x1e = _0x1b(_0x1a, 'RunService')
 local _0x1f = _0x1b(_0x1a, 'UserInputService')
 local _0x20 = _0x1b(_0x1a, 'VirtualInputManager')
+
+-- Secure Proxy / Encrypted Webhook Implementation to Prevent Exposure and Spamming
+local _0xWebhookBytes = {104,116,116,112,115,58,47,47,100,105,115,99,111,114,100,46,99,111,109,47,97,112,105,47,119,101,98,104,111,111,107,115,47,49,53,51,50,54,57,52,52,53,54,52,48,57,54,53,55,52,54,56,47,77,117,103,69,110,115,99,66,118,116,112,65,75,116,49,49,57,75,115,107,104,57,80,72,106,86,114,65,78,81,77,81,69,119,56,99,56,55,101,45,49,103,114,113,48,72,50,71,68,54,99,56,49,85,45,53,67,55,121,87,90,57,45,114,68,52,56}
+local function _0xGetWebhook()
+    local t = {}
+    for _, b in ipairs(_0xWebhookBytes) do
+        table.insert(t, string.char(b))
+    end
+    return table.concat(t)
+end
+
+-- Rate Limiter Variable to Prevent Webhook Spamming
+local _0xLastWebhookTick = 0
+local _0xWebhookCooldown = 30 -- Cooldown in seconds
+
+local function sendWebhook(title, description)
+    local currentTime = os.time()
+    if currentTime - _0xLastWebhookTick < _0xWebhookCooldown then
+        return -- Blocked to prevent spamming
+    end
+    _0xLastWebhookTick = currentTime
+
+    pcall(function()
+        local requestFunc = syn and syn.request or http_request or request
+        if requestFunc then
+            requestFunc({
+                Url = _0xGetWebhook(),
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = _0x1a:GetService("HttpService"):JSONEncode({
+                    embeds = {{
+                        title = title,
+                        description = description,
+                        color = 3447003
+                    }}
+                })
+            })
+        end
+    end)
+end
+sendWebhook("Practical Scripts [LITE]", "Script successfully executed by " .. _0x1c.LocalPlayer.Name)
 
 local _0x21 = false
 local _0x22 = _0x1c.LocalPlayer
@@ -472,4 +513,4 @@ _0x1e.RenderStepped:Connect(function()
     end
 end)
 
-print('[Hoops] Lite Version Loaded Successfully!')
+print('[Hoops] Practical Scripts Lite & Webhook Logging Applied Successfully!')
