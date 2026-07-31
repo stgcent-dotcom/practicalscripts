@@ -1,9 +1,189 @@
+local Plr = game:GetService('Players').LocalPlayer
+local RS  = game:GetService('ReplicatedStorage')
+local Run = game:GetService('RunService')
 local UIS = game:GetService('UserInputService')
-local isMobile = UIS.TouchEnabled and not UIS.KeyboardEnabled
-local Plr  = game:GetService('Players').LocalPlayer
-local RS   = game:GetService('ReplicatedStorage')
-local Run  = game:GetService('RunService')
-local VS   = game:GetService('VirtualInputManager')
+local VS  = game:GetService('VirtualInputManager')
+local IsMobile = UIS.TouchEnabled and not (UIS.KeyboardEnabled and UIS.MouseEnabled)
+local Library
+local ThemeManager
+local SaveManager
+local Toggles = {}
+local Options = {}
+local MeterInfo = {}
+if not IsMobile then
+local _0x1a = {
+[1] = string.char(104, 116, 116, 112, 115, 58, 47, 47, 114, 97, 119, 46, 103, 105, 116, 104, 117, 98, 117, 115, 101, 114, 99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109, 47, 118, 105, 111, 108, 105, 110, 45, 115, 117, 122, 117, 116, 115, 117, 107, 105, 47, 76, 105, 110, 111, 114, 105, 97, 76, 105, 98, 47, 109, 97, 105, 110, 47),
+[2] = string.char(76, 105, 98, 114, 97, 114, 121, 46, 108, 117, 97),
+[3] = string.char(97, 100, 100, 111, 110, 115, 47, 84, 104, 101, 109, 101, 77, 97, 110, 97, 103, 101, 114, 46, 108, 117, 97),
+[4] = string.char(97, 100, 100, 111, 110, 115, 47, 83, 97, 118, 101, 77, 97, 110, 97, 103, 101, 114, 46, 108, 117, 97),
+}
+local _0x2b = function(_0x_url) return loadstring(game:HttpGet(_0x_url))() end
+Library      = _0x2b(_0x1a[1] .. _0x1a[2])
+ThemeManager = _0x2b(_0x1a[1] .. _0x1a[3])
+SaveManager  = _0x2b(_0x1a[1] .. _0x1a[4])
+local Window = Library:CreateWindow({
+Title = 'Practical Scripts', Center = true, AutoShow = true,
+TabPadding = 8, MenuFadeTime = 0.2
+})
+local Tabs = {
+General = Window:AddTab('General'),
+['Macro Builder'] = Window:AddTab('Macro Builder'),
+['UI Settings'] = Window:AddTab('UI Settings'),
+}
+local ShootingGroup = Tabs.General:AddLeftGroupbox('Shooting')
+ShootingGroup:AddToggle('AutoMeterShoot', { Text = 'Enable Auto Meter', Default = false, Tooltip = 'Auto-releases the shot when the meter reaches the target.' })
+ShootingGroup:AddSlider('MeterTarget', { Text = 'Target Value', Default = -1.38, Min = -1.50, Max = -0.50, Rounding = 3, Tooltip = 'The exact value where the meter is green.' })
+ShootingGroup:AddSlider('MeterLead', { Text = 'Lead (Ping Comp)', Default = 0.05, Min = 0.00, Max = 0.20, Rounding = 3, Tooltip = 'Fires earlier to compensate for input lag. Higher = earlier.' })
+local linoriaLabel = ShootingGroup:AddLabel('Live Value: n/a', true)
+MeterInfo.SetText = function(_, txt) linoriaLabel:SetText(txt) end
+local DefenseGroup = Tabs.General:AddRightGroupbox('Defense')
+DefenseGroup:AddToggle('AutoGuard', { Text = 'Native Context Auto-Guard (G)', Default = false, Tooltip = 'Hooks into game context state to replicate manual G key holding securely' })
+DefenseGroup:AddToggle('SmartDefense', { Text = 'Stud-Ahead Clamp Defense', Default = false, Tooltip = 'Stays strictly planted ahead of the ball carrier towards the hoop with a safe stud distance to prevent driving past' })
+DefenseGroup:AddSlider('StudGap', { Text = 'In-Front Stud Gap', Default = 3.5, Min = 1.5, Max = 6.0, Rounding = 1, Tooltip = 'Exact stud buffer distance to stay in front of them without clipping inside' })
+DefenseGroup:AddSlider('PredictionStrength', { Text = 'Instant Crossover Lead', Default = 0.40, Min = 0.00, Max = 1.00, Rounding = 2, Tooltip = 'Instantly tracks left/right sharp cuts with zero delay' })
+local ReboundGroup = Tabs.General:AddRightGroupbox('Automation')
+ReboundGroup:AddToggle('AutoRebound', { Text = 'Auto-Rebound Aura', Default = false, Tooltip = 'Real-time tracking that targets the closest loose basketball within range' })
+ReboundGroup:AddSlider('ReboundRange', { Text = 'Detection Range (Studs)', Default = 60.0, Min = 10.0, Max = 150.0, Rounding = 1, Tooltip = 'Maximum tracking distance for closest basketball detection' })
+local PlayerGroup = Tabs.General:AddRightGroupbox('Player')
+PlayerGroup:AddToggle('ForceShiftlock', { Text = 'Force Shiftlock', Default = false, Tooltip = 'Forces camera shiftlock rotation and centers the mouse cursor' })
+PlayerGroup:AddToggle('StreamerMode', { Text = 'Streamer Mode', Default = false, Tooltip = 'Hides/masks your identity by changing your overhead banner name and title' })
+PlayerGroup:AddToggle('HeightExtender', { Text = 'Height Extender', Default = false })
+PlayerGroup:AddSlider('HeightValue', { Text = 'Hip height', Default = 5, Min = 1, Max = 15, Rounding = 2 })
+PlayerGroup:AddLabel('Height key'):AddKeyPicker('HeightKey', { Default = 'H', SyncToggleState = true, Mode = 'Toggle', Text = 'Height' })
+local MacroGroup = Tabs['Macro Builder']:AddLeftGroupbox('Dribble Macros')
+MacroGroup:AddToggle('MacroRightSpin', { Text = 'Right Spin Macro', Default = false, Tooltip = 'Executes Right Spin sequence (C, X, Z)' })
+MacroGroup:AddLabel('Right Spin Key'):AddKeyPicker('MacroKeyRight', { Default = 'Q', NoUI = false, Text = 'Right Spin Key' })
+MacroGroup:AddToggle('MacroLeftSpin', { Text = 'Left Spin Macro', Default = false, Tooltip = 'Executes Left Spin sequence (Z, X, C)' })
+MacroGroup:AddLabel('Left Spin Key'):AddKeyPicker('MacroKeyLeft', { Default = 'E', NoUI = false, Text = 'Left Spin Key' })
+Library:SetWatermarkVisibility(true)
+Library:SetWatermark('Hoops')
+Library.KeybindFrame.Visible = true
+Library:OnUnload(function()
+UIS.MouseBehavior = Enum.MouseBehavior.Default
+local h = Hum()
+if h then h.AutoRotate = true end
+SetKeyInstant(Enum.KeyCode.G, false)
+if Shoot then Fire(Shoot, 'Shoot', false) end
+Height(false)
+Library.Unloaded = true
+end)
+local M = Tabs['UI Settings']:AddLeftGroupbox('Menu')
+M:AddButton('Unload', function() Library:Unload() end)
+M:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoUI = true, Text = 'Menu keybind' })
+Library.ToggleKeybind = Options.MenuKeybind
+ThemeManager:SetLibrary(Library); SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })
+ThemeManager:SetFolder('MyScriptHub'); SaveManager:SetFolder('MyScriptHub/hoops')
+SaveManager:BuildConfigSection(Tabs['UI Settings'])
+ThemeManager:ApplyToTab(Tabs['UI Settings'])
+SaveManager:LoadAutoloadConfig()
+Toggles = getgenv().Toggles or _G.Toggles or Toggles
+Options = getgenv().Options or _G.Options or Options
+else
+Library = { Unloaded = false }
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/main.lua"))()
+local Window = Fluent:CreateWindow({
+Title = "Practical Scripts",
+SubTitle = "Mobile Edition",
+TabWidth = 140,
+Size = UDim2.fromOffset(500, 350),
+Acrylic = false,
+Theme = "Dark",
+MinimizeKey = Enum.KeyCode.End
+})
+local Tabs = {
+General = Window:AddTab({ Title = "General", Icon = "home" }),
+Macro   = Window:AddTab({ Title = "Macro Builder", Icon = "gamepad-2" }),
+Settings= Window:AddTab({ Title = "UI Settings", Icon = "settings" })
+}
+local function CreateToggle(id, tab, title, default, tooltip)
+local tObj = { Value = default, ChangedCallbacks = {} }
+function tObj:OnChanged(cb) table.insert(self.ChangedCallbacks, cb) end
+local ft = tab:AddToggle(id, { Title = title, Default = default, Description = tooltip })
+ft:OnChanged(function(v)
+tObj.Value = v
+for _, cb in ipairs(tObj.ChangedCallbacks) do task.spawn(cb, v) end
+end)
+Toggles[id] = tObj
+return tObj
+end
+local function CreateSlider(id, tab, title, default, min, max, rounding, tooltip)
+local sObj = { Value = default, ChangedCallbacks = {} }
+function sObj:OnChanged(cb) table.insert(self.ChangedCallbacks, cb) end
+local fs = tab:AddSlider(id, { Title = title, Default = default, Min = min, Max = max, Rounding = rounding or 2, Description = tooltip })
+fs:OnChanged(function(v)
+sObj.Value = v
+for _, cb in ipairs(sObj.ChangedCallbacks) do task.spawn(cb, v) end
+end)
+Options[id] = sObj
+return sObj
+end
+local function CreateKeyPicker(id, tab, title, default)
+local kObj = { Value = default, ClickCallbacks = {}, ChangedCallbacks = {} }
+function kObj:OnClick(cb) table.insert(self.ClickCallbacks, cb) end
+function kObj:OnChanged(cb) table.insert(self.ChangedCallbacks, cb) end
+local fk = tab:AddKeybind(id, { Title = title, Mode = "Toggle", Default = default })
+fk:OnClick(function()
+for _, cb in ipairs(kObj.ClickCallbacks) do task.spawn(cb) end
+end)
+fk:OnChanged(function(v)
+local name = typeof(v) == "EnumItem" and v.Name or tostring(v)
+kObj.Value = name
+for _, cb in ipairs(kObj.ChangedCallbacks) do task.spawn(cb, v) end
+end)
+Options[id] = kObj
+return kObj
+end
+Tabs.General:AddSection("Shooting")
+CreateToggle('AutoMeterShoot', Tabs.General, 'Enable Auto Meter', false, 'Auto-releases shot at target')
+CreateSlider('MeterTarget', Tabs.General, 'Target Value', -1.38, -1.50, -0.50, 3)
+CreateSlider('MeterLead', Tabs.General, 'Lead (Ping Comp)', 0.05, 0.00, 0.20, 3)
+local meterPara = Tabs.General:AddParagraph({ Title = "Live Value: n/a", Content = "Fire Point: n/a" })
+MeterInfo.SetText = function(_, txt)
+local lines = string.split(txt, "\n")
+meterPara:SetTitle(lines[1] or "Live Value: n/a")
+meterPara:SetDesc(lines[2] or "")
+end
+Tabs.General:AddSection("Defense & Automation")
+CreateToggle('AutoGuard', Tabs.General, 'Native Context Auto-Guard (G)', false)
+CreateToggle('SmartDefense', Tabs.General, 'Stud-Ahead Clamp Defense', false)
+CreateSlider('StudGap', Tabs.General, 'In-Front Stud Gap', 3.5, 1.5, 6.0, 1)
+CreateSlider('PredictionStrength', Tabs.General, 'Instant Crossover Lead', 0.40, 0.00, 1.00, 2)
+CreateToggle('AutoRebound', Tabs.General, 'Auto-Rebound Aura', false)
+CreateSlider('ReboundRange', Tabs.General, 'Detection Range (Studs)', 60.0, 10.0, 150.0, 1)
+Tabs.General:AddSection("Player")
+CreateToggle('ForceShiftlock', Tabs.General, 'Force Shiftlock', false)
+CreateToggle('StreamerMode', Tabs.General, 'Streamer Mode', false)
+CreateToggle('HeightExtender', Tabs.General, 'Height Extender', false)
+CreateSlider('HeightValue', Tabs.General, 'Hip height', 5, 1, 15, 2)
+CreateKeyPicker('HeightKey', Tabs.General, 'Height Keybind', 'H')
+Tabs.Macro:AddSection("Dribble Macros")
+CreateToggle('MacroRightSpin', Tabs.Macro, 'Right Spin Macro', false)
+CreateKeyPicker('MacroKeyRight', Tabs.Macro, 'Right Spin Key', 'Q')
+Tabs.Macro:AddButton({ Title = "Execute Right Spin (Touch)", Callback = function()
+if Options.MacroKeyRight and Options.MacroKeyRight.ClickCallbacks then
+for _, cb in ipairs(Options.MacroKeyRight.ClickCallbacks) do cb() end
+end
+end })
+CreateToggle('MacroLeftSpin', Tabs.Macro, 'Left Spin Macro', false)
+CreateKeyPicker('MacroKeyLeft', Tabs.Macro, 'Left Spin Key', 'E')
+Tabs.Macro:AddButton({ Title = "Execute Left Spin (Touch)", Callback = function()
+if Options.MacroKeyLeft and Options.MacroKeyLeft.ClickCallbacks then
+for _, cb in ipairs(Options.MacroKeyLeft.ClickCallbacks) do cb() end
+end
+end })
+Tabs.Settings:AddButton({ Title = "Unload Script", Callback = function()
+UIS.MouseBehavior = Enum.MouseBehavior.Default
+local h = Hum()
+if h then h.AutoRotate = true end
+SetKeyInstant(Enum.KeyCode.G, false)
+if Shoot then Fire(Shoot, 'Shoot', false) end
+Height(false)
+Library.Unloaded = true
+Fluent:Destroy()
+end })
+end
 local Shoot
 pcall(function()
 local s = RS:WaitForChild('Aero', 10):WaitForChild('AeroRemoteServices', 10)
@@ -52,7 +232,7 @@ end
 return false
 end
 local baseHip, tracked
-local function Height(on, valOverride)
+local function Height(on)
 local h = Hum()
 if not h then return end
 if tracked ~= h then tracked, baseHip = h, nil end
@@ -60,30 +240,13 @@ if not baseHip then
 local ok, v = pcall(function() return h.HipHeight end)
 baseHip = ok and v or 2
 end
-local t = on and valOverride or baseHip
+local t = on and Options.HeightValue.Value or baseHip
 pcall(function()
 if math.abs(h.HipHeight - t) > 0.001 then h.HipHeight = t end
 end)
 end
-local val = 0
-local autoMeterShoot = false
-local meterTarget = -1.38
-local meterLead = 0.05
-local autoGuard = false
-local smartDefense = false
-local studGap = 3.5
-local predictionStrength = 0.40
-local autoRebound = false
-local reboundRange = 60.0
-local forceShiftlock = false
-local streamerMode = false
-local heightExtender = false
-local heightValue = 5
-local macroRightActive = false
-local macroLeftActive = false
-local isExecutingMacro = false
 local function ParseKey(str)
-str = str:gsub('%s+', ''):upper()
+str = tostring(str):gsub('%s+', ''):upper()
 if #str == 1 then
 local success, keyCode = pcall(function()
 return Enum.KeyCode[str]
@@ -94,6 +257,7 @@ end
 end
 return nil
 end
+local isExecutingMacro = false
 local function PlaySequence(seq)
 if isExecutingMacro then return end
 isExecutingMacro = true
@@ -110,6 +274,20 @@ end
 isExecutingMacro = false
 end)
 end
+if Options.MacroKeyRight then
+Options.MacroKeyRight:OnClick(function()
+if Toggles.MacroRightSpin and Toggles.MacroRightSpin.Value then
+PlaySequence({'c', 'x', 'z'})
+end
+end)
+end
+if Options.MacroKeyLeft then
+Options.MacroKeyLeft:OnClick(function()
+if Toggles.MacroLeftSpin and Toggles.MacroLeftSpin.Value then
+PlaySequence({'z', 'x', 'c'})
+end
+end)
+end
 local function GetFillGradient()
 local char = Rig()
 if not char then return nil end
@@ -122,17 +300,15 @@ if not fill then return nil end
 return fill:FindFirstChild('FillGradient')
 end
 local shotReleased = false
-local pcMeterInfoLabel = nil
+local val = 0
 Run.RenderStepped:Connect(function()
-if autoMeterShoot or pcMeterInfoLabel then
+if Library.Unloaded then return end
 local gradient = GetFillGradient()
 if gradient then
 val = gradient.Offset.Y
-local firePoint = meterTarget + meterLead
-if pcMeterInfoLabel then
-pcMeterInfoLabel:SetText(('Live Value: %.4f\nFire Point: %.4f'):format(val, firePoint))
-end
-if not autoMeterShoot then return end
+local firePoint = Options.MeterTarget.Value + Options.MeterLead.Value
+MeterInfo:SetText(('Live Value: %.4f\nFire Point: %.4f'):format(val, firePoint))
+if not Toggles.AutoMeterShoot.Value then return end
 if val <= firePoint and not shotReleased then
 shotReleased = true
 if Shoot then
@@ -145,18 +321,16 @@ elseif val > -0.5 then
 shotReleased = false
 end
 else
-if pcMeterInfoLabel then
-pcMeterInfoLabel:SetText('Live Value: n/a\nFire Point: n/a')
-end
+MeterInfo:SetText('Live Value: n/a\nFire Point: n/a')
 shotReleased = false
-end
 end
 end)
 Run.RenderStepped:Connect(function()
-if not forceShiftlock then return end
-UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
+if Library.Unloaded then return end
 local char = Rig()
 local hum = Hum()
+if Toggles.ForceShiftlock and Toggles.ForceShiftlock.Value then
+UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
 if char and hum then
 local hrp = char:FindFirstChild('HumanoidRootPart')
 local cam = workspace.CurrentCamera
@@ -170,10 +344,19 @@ hrp.CFrame = CFrame.new(hrp.Position, hrp.Position + flatLook)
 end
 end
 end
+else
+if hum then
+hum.AutoRotate = true
+end
+if UIS.MouseBehavior == Enum.MouseBehavior.LockCenter then
+UIS.MouseBehavior = Enum.MouseBehavior.Default
+end
+end
 end)
 local originalPlayerNameText = nil
 local originalTitleText = nil
-local function ApplyStreamerMode(state)
+if Toggles.StreamerMode then
+Toggles.StreamerMode:OnChanged(function()
 local char = Rig()
 if not char then return end
 local hrp = char:FindFirstChild('HumanoidRootPart')
@@ -194,7 +377,7 @@ local titleObj = container:FindFirstChild('Title')
 if titleObj then
 currentTitle = titleObj:FindFirstChild('CurrentTitle')
 end
-if state then
+if Toggles.StreamerMode.Value then
 if playerName and playerName:IsA('TextLabel') then
 originalPlayerNameText = originalPlayerNameText or playerName.Text
 playerName.Text = 'Practical Scripts'
@@ -211,10 +394,38 @@ if currentTitle and currentTitle:IsA('TextLabel') and originalTitleText then
 currentTitle.Text = originalTitleText
 end
 end
+end)
 end
 Run.RenderStepped:Connect(function()
-if not streamerMode then return end
-ApplyStreamerMode(true)
+if Library.Unloaded then return end
+if not (Toggles.StreamerMode and Toggles.StreamerMode.Value) then return end
+local char = Rig()
+if not char then return end
+local hrp = char:FindFirstChild('HumanoidRootPart')
+if not hrp then return end
+local banner = hrp:FindFirstChild('Banner')
+if banner then
+local container = banner:FindFirstChild('Container')
+if container then
+local bannerHolder = container:FindFirstChild('Banner')
+if bannerHolder then
+local holder = bannerHolder:FindFirstChild('Holder')
+if holder then
+local playerName = holder:FindFirstChild('PlayerName')
+if playerName and playerName:IsA('TextLabel') and playerName.Text ~= 'Practical Scripts' then
+playerName.Text = 'Practical Scripts'
+end
+end
+end
+local titleObj = container:FindFirstChild('Title')
+if titleObj then
+local currentTitle = titleObj:FindFirstChild('CurrentTitle')
+if currentTitle and currentTitle:IsA('TextLabel') and currentTitle.Text ~= 'Practical Scripts' then
+currentTitle.Text = 'Practical Scripts'
+end
+end
+end
+end
 end)
 local function GetTargetGoalPos(myRootPos)
 local hoopsFolder = workspace:FindFirstChild('Hoops') or workspace:FindFirstChild('Goals') or workspace:FindFirstChild('Court')
@@ -247,8 +458,9 @@ end
 end)
 end
 Run.RenderStepped:Connect(function()
+if Library.Unloaded then return end
 local hasBall = HasBall()
-local currentGuard = autoGuard and not hasBall
+local currentGuard = Toggles.AutoGuard and Toggles.AutoGuard.Value and not hasBall
 if currentGuard ~= lastGuardState then
 lastGuardState = currentGuard
 if currentGuard then
@@ -265,8 +477,8 @@ local myRoot = myRig:FindFirstChild('HumanoidRootPart')
 if not myRoot then return end
 local activeBallPart = nil
 local basketballs = workspace:FindFirstChild('Basketballs')
-if basketballs and autoRebound and not smartDefense and not hasBall then
-local shortestDist = reboundRange
+if basketballs and Toggles.AutoRebound and Toggles.AutoRebound.Value and not (Toggles.SmartDefense and Toggles.SmartDefense.Value) and not hasBall then
+local shortestDist = Options.ReboundRange.Value
 for _, ball in ipairs(basketballs:GetChildren()) do
 if ball:IsA('BasePart') then
 local d = (ball.Position - myRoot.Position).Magnitude
@@ -306,7 +518,7 @@ if lastD then SetKeyInstant(Enum.KeyCode.D, false); lastD = false end
 end
 return
 end
-if not smartDefense or hasBall then
+if not (Toggles.SmartDefense and Toggles.SmartDefense.Value) or hasBall then
 if lastW then SetKeyInstant(Enum.KeyCode.W, false); lastW = false end
 if lastS then SetKeyInstant(Enum.KeyCode.S, false); lastS = false end
 if lastA then SetKeyInstant(Enum.KeyCode.A, false); lastA = false end
@@ -356,14 +568,14 @@ lastTickTime = now
 local enemyPos = targetChar.Position
 local enemyVel = (enemyPos - lastEnemyPos) / dt
 lastEnemyPos = enemyPos
-local predMult = predictionStrength
+local predMult = Options.PredictionStrength.Value
 local predictedEnemyPos = enemyPos + (Vector3.new(enemyVel.X, 0, enemyVel.Z) * predMult)
 local goalPos = GetTargetGoalPos(myRoot.Position)
 local enemyToGoal = (goalPos - predictedEnemyPos)
 local distToGoal = enemyToGoal.Magnitude
 local dirToGoal = (distToGoal > 1) and enemyToGoal.Unit or Vector3.new(0, 0, 1)
-local currentStudGap = studGap
-local clampSpot = predictedEnemyPos + (dirToGoal * math.min(currentStudGap, distToGoal))
+local studGap = Options.StudGap.Value
+local clampSpot = predictedEnemyPos + (dirToGoal * math.min(studGap, distToGoal))
 clampSpot = Vector3.new(clampSpot.X, myRoot.Position.Y, clampSpot.Z)
 local cam = workspace.CurrentCamera
 local targetDir = (clampSpot - myRoot.Position)
@@ -391,274 +603,32 @@ if lastD then SetKeyInstant(Enum.KeyCode.D, false); lastD = false end
 end
 end
 end)
+if Toggles.HeightExtender then
+Toggles.HeightExtender:OnChanged(function() Height(Toggles.HeightExtender.Value) end)
+end
+if Options.HeightValue then
+Options.HeightValue:OnChanged(function()
+if Toggles.HeightExtender and Toggles.HeightExtender.Value then Height(true) end
+end)
+end
+if Toggles.AutoGuard then
+Toggles.AutoGuard:OnChanged(function()
+if not Toggles.AutoGuard.Value then
+SetKeyInstant(Enum.KeyCode.G, false)
+lastGuardState = false
+end
+end)
+end
+Plr.CharacterAdded:Connect(function()
+task.wait(1); tracked, baseHip = nil, nil
+originalPlayerNameText, originalTitleText = nil, nil
+if Toggles.HeightExtender and Toggles.HeightExtender.Value then Height(true) end
+end)
 task.spawn(function()
 while true do
 task.wait(0.25)
-if heightExtender then
-Height(true, heightValue)
-end
-end
-end)
-Plr.CharacterAdded:Connect(function()
-task.wait(1)
-tracked, baseHip = nil, nil
-originalPlayerNameText, originalTitleText = nil, nil
-if heightExtender then Height(true, heightValue) end
-end)
-if isMobile then
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local Window = Rayfield:CreateWindow({
-Title = 'Practical Scripts | Hoops',
-LoadingTitle = 'Practical Scripts',
-LoadingSubtitle = 'Mobile Version',
-ConfigurationSaving = { Enabled = true, FolderName = 'PracticalScripts_Hoops' }
-})
-local Tab = Window:CreateTab('General', 4483362458)
-Tab:CreateSection('Shooting')
-Tab:CreateToggle({
-Name = 'Enable Auto Meter',
-CurrentValue = autoMeterShoot,
-Callback = function(v) autoMeterShoot = v end
-})
-Tab:CreateSlider({
-Name = 'Target Value',
-Range = {-1.50, -0.50},
-Increment = 0.001,
-CurrentValue = meterTarget,
-Callback = function(v) meterTarget = v end
-})
-Tab:CreateSlider({
-Name = 'Lead (Ping Comp)',
-Range = {0.00, 0.20},
-Increment = 0.001,
-CurrentValue = meterLead,
-Callback = function(v) meterLead = v end
-})
-Tab:CreateSection('Defense & Automation')
-Tab:CreateToggle({
-Name = 'Native Context Auto-Guard (G)',
-CurrentValue = autoGuard,
-Callback = function(v) autoGuard = v end
-})
-Tab:CreateToggle({
-Name = 'Stud-Ahead Clamp Defense',
-CurrentValue = smartDefense,
-Callback = function(v) smartDefense = v end
-})
-Tab:CreateSlider({
-Name = 'In-Front Stud Gap',
-Range = {1.5, 6.0},
-Increment = 0.1,
-CurrentValue = studGap,
-Callback = function(v) studGap = v end
-})
-Tab:CreateSlider({
-Name = 'Instant Crossover Lead',
-Range = {0.00, 1.00},
-Increment = 0.01,
-CurrentValue = predictionStrength,
-Callback = function(v) predictionStrength = v end
-})
-Tab:CreateToggle({
-Name = 'Auto-Rebound Aura',
-CurrentValue = autoRebound,
-Callback = function(v) autoRebound = v end
-})
-Tab:CreateSlider({
-Name = 'Detection Range (Studs)',
-Range = {10.0, 150.0},
-Increment = 1.0,
-CurrentValue = reboundRange,
-Callback = function(v) reboundRange = v end
-})
-Tab:CreateSection('Player & Macros')
-Tab:CreateToggle({
-Name = 'Force Shiftlock',
-CurrentValue = forceShiftlock,
-Callback = function(v)
-forceShiftlock = v
-if not v then
-local hum = Hum()
-if hum then hum.AutoRotate = true end
-if UIS.MouseBehavior == Enum.MouseBehavior.LockCenter then
-UIS.MouseBehavior = Enum.MouseBehavior.Default
-end
-end
-end
-})
-Tab:CreateToggle({
-Name = 'Streamer Mode',
-CurrentValue = streamerMode,
-Callback = function(v)
-streamerMode = v
-ApplyStreamerMode(v)
-end
-})
-Tab:CreateToggle({
-Name = 'Height Extender',
-CurrentValue = heightExtender,
-Callback = function(v)
-heightExtender = v
-Height(v, heightValue)
-end
-})
-Tab:CreateSlider({
-Name = 'Hip Height',
-Range = {1, 15},
-Increment = 0.01,
-CurrentValue = heightValue,
-Callback = function(v)
-heightValue = v
-if heightExtender then Height(true, v) end
-end
-})
-Tab:CreateButton({
-Name = 'Right Spin Macro (C, X, Z)',
-Callback = function() PlaySequence({'c', 'x', 'z'}) end
-})
-Tab:CreateButton({
-Name = 'Left Spin Macro (Z, X, C)',
-Callback = function() PlaySequence({'z', 'x', 'c'}) end
-})
-Rayfield:LoadConfiguration()
-print('[Hoops] loaded on Mobile via Rayfield')
-else
-local _0x1a = {
-[1] = string.char(104, 116, 116, 112, 115, 58, 47, 47, 114, 97, 119, 46, 103, 105, 116, 104, 117, 98, 117, 115, 101, 114, 99, 111, 110, 116, 101, 110, 116, 46, 99, 111, 109, 47, 118, 105, 111, 108, 105, 110, 45, 115, 117, 122, 117, 116, 115, 117, 107, 105, 47, 76, 105, 110, 111, 114, 105, 97, 76, 105, 98, 47, 109, 97, 105, 110, 47),
-[2] = string.char(76, 105, 98, 114, 97, 114, 121, 46, 108, 117, 97),
-[3] = string.char(97, 100, 100, 111, 110, 115, 47, 84, 104, 101, 109, 101, 77, 97, 110, 97, 103, 101, 114, 46, 108, 117, 97),
-[4] = string.char(97, 100, 100, 111, 110, 115, 47, 83, 97, 118, 101, 77, 97, 110, 97, 103, 101, 114, 46, 108, 117, 97),
-}
-local _0x2b = function(_0x_url) return loadstring(game:HttpGet(_0x_url))() end
-local Library     = _0x2b(_0x1a[1] .. _0x1a[2])
-local ThemeManager = _0x2b(_0x1a[1] .. _0x1a[3])
-local SaveManager  = _0x2b(_0x1a[1] .. _0x1a[4])
-local Window = Library:CreateWindow({
-Title = 'Practical Scripts', Center = true, AutoShow = true,
-TabPadding = 8, MenuFadeTime = 0.2
-})
-local Tabs = {
-General = Window:AddTab('General'),
-['Macro Builder'] = Window:AddTab('Macro Builder'),
-['UI Settings'] = Window:AddTab('UI Settings'),
-}
-local ShootingGroup = Tabs.General:AddLeftGroupbox('Shooting')
-ShootingGroup:AddToggle('AutoMeterShoot', { Text = 'Enable Auto Meter', Default = false,
-Tooltip = 'Auto-releases the shot when the meter reaches the target.' })
-ShootingGroup:AddSlider('MeterTarget', { Text = 'Target Value', Default = -1.38,
-Min = -1.50, Max = -0.50, Rounding = 3,
-Tooltip = 'The exact value where the meter is green.' })
-ShootingGroup:AddSlider('MeterLead', { Text = 'Lead (Ping Comp)', Default = 0.05,
-Min = 0.00, Max = 0.20, Rounding = 3,
-Tooltip = 'Fires earlier to compensate for input lag. Higher = earlier.' })
-pcMeterInfoLabel = ShootingGroup:AddLabel('Live Value: n/a', true)
-local DefenseGroup = Tabs.General:AddRightGroupbox('Defense')
-DefenseGroup:AddToggle('AutoGuard', { Text = 'Native Context Auto-Guard (G)', Default = false,
-Tooltip = 'Hooks into game context state to replicate manual G key holding securely' })
-DefenseGroup:AddToggle('SmartDefense', { Text = 'Stud-Ahead Clamp Defense', Default = false,
-Tooltip = 'Stays strictly planted ahead of the ball carrier towards the hoop with a safe stud distance to prevent driving past' })
-DefenseGroup:AddSlider('StudGap', { Text = 'In-Front Stud Gap', Default = 3.5,
-Min = 1.5, Max = 6.0, Rounding = 1,
-Tooltip = 'Exact stud buffer distance to stay in front of them without clipping inside' })
-DefenseGroup:AddSlider('PredictionStrength', { Text = 'Instant Crossover Lead', Default = 0.40,
-Min = 0.00, Max = 1.00, Rounding = 2,
-Tooltip = 'Instantly tracks left/right sharp cuts with zero delay' })
-local ReboundGroup = Tabs.General:AddRightGroupbox('Automation')
-ReboundGroup:AddToggle('AutoRebound', { Text = 'Auto-Rebound Aura', Default = false,
-Tooltip = 'Real-time tracking that targets the closest loose basketball within range' })
-ReboundGroup:AddSlider('ReboundRange', { Text = 'Detection Range (Studs)', Default = 60.0,
-Min = 10.0, Max = 150.0, Rounding = 1,
-Tooltip = 'Maximum tracking distance for closest basketball detection' })
-local PlayerGroup = Tabs.General:AddRightGroupbox('Player')
-PlayerGroup:AddToggle('ForceShiftlock', { Text = 'Force Shiftlock', Default = false,
-Tooltip = 'Forces camera shiftlock rotation and centers the mouse cursor' })
-PlayerGroup:AddToggle('StreamerMode', { Text = 'Streamer Mode', Default = false,
-Tooltip = 'Hides/masks your identity by changing your overhead banner name and title' })
-PlayerGroup:AddToggle('HeightExtender', { Text = 'Height Extender', Default = false })
-PlayerGroup:AddSlider('HeightValue', { Text = 'Hip height', Default = 5,
-Min = 1, Max = 15, Rounding = 2 })
-PlayerGroup:AddLabel('Height key'):AddKeyPicker('HeightKey', {
-Default = 'H', SyncToggleState = true, Mode = 'Toggle', Text = 'Height' })
-local MacroGroup = Tabs['Macro Builder']:AddLeftGroupbox('Dribble Macros')
-MacroGroup:AddToggle('MacroRightSpin', { Text = 'Right Spin Macro', Default = false,
-Tooltip = 'Executes Right Spin sequence (C, X, Z)' })
-MacroGroup:AddLabel('Right Spin Key'):AddKeyPicker('MacroKeyRight', {
-Default = 'Q', NoUI = false, Text = 'Right Spin Key'
-})
-MacroGroup:AddToggle('MacroLeftSpin', { Text = 'Left Spin Macro', Default = false,
-Tooltip = 'Executes Left Spin sequence (Z, X, C)' })
-MacroGroup:AddLabel('Left Spin Key'):AddKeyPicker('MacroKeyLeft', {
-Default = 'E', NoUI = false, Text = 'Left Spin Key'
-})
-Toggles.AutoMeterShoot:OnChanged(function() autoMeterShoot = Toggles.AutoMeterShoot.Value end)
-Options.MeterTarget:OnChanged(function() meterTarget = Options.MeterTarget.Value end)
-Options.MeterLead:OnChanged(function() meterLead = Options.MeterLead.Value end)
-Toggles.AutoGuard:OnChanged(function()
-autoGuard = Toggles.AutoGuard.Value
-if not autoGuard then
-SetKeyInstant(Enum.KeyCode.G, false)
+if Library.Unloaded then break end
+if Toggles.HeightExtender and Toggles.HeightExtender.Value then Height(true) end
 end
 end)
-Toggles.SmartDefense:OnChanged(function() smartDefense = Toggles.SmartDefense.Value end)
-Options.StudGap:OnChanged(function() studGap = Options.StudGap.Value end)
-Options.PredictionStrength:OnChanged(function() predictionStrength = Options.PredictionStrength.Value end)
-Toggles.AutoRebound:OnChanged(function() autoRebound = Toggles.AutoRebound.Value end)
-Options.ReboundRange:OnChanged(function() reboundRange = Options.ReboundRange.Value end)
-Toggles.ForceShiftlock:OnChanged(function()
-forceShiftlock = Toggles.ForceShiftlock.Value
-if not forceShiftlock then
-local hum = Hum()
-if hum then hum.AutoRotate = true end
-if UIS.MouseBehavior == Enum.MouseBehavior.LockCenter then
-UIS.MouseBehavior = Enum.MouseBehavior.Default
-end
-end
-end)
-Toggles.StreamerMode:OnChanged(function()
-streamerMode = Toggles.StreamerMode.Value
-ApplyStreamerMode(streamerMode)
-end)
-Toggles.HeightExtender:OnChanged(function()
-heightExtender = Toggles.HeightExtender.Value
-Height(heightExtender, heightValue)
-end)
-Options.HeightValue:OnChanged(function()
-heightValue = Options.HeightValue.Value
-if heightExtender then Height(true, heightValue) end
-end)
-Options.MacroKeyRight:OnClick(function()
-if Toggles.MacroRightSpin.Value then
-PlaySequence({'c', 'x', 'z'})
-end
-end)
-Options.MacroKeyLeft:OnClick(function()
-if Toggles.MacroLeftSpin.Value then
-PlaySequence({'z', 'x', 'c'})
-end
-end)
-Library:SetWatermarkVisibility(true)
-Library:SetWatermark('Hoops')
-Library.KeybindFrame.Visible = true
-Library:OnUnload(function()
-UIS.MouseBehavior = Enum.MouseBehavior.Default
-local hum = Hum()
-if hum then hum.AutoRotate = true end
-SetKeyInstant(Enum.KeyCode.G, false)
-if Shoot then Fire(Shoot, 'Shoot', false) end
-Height(false, 0)
-Library.Unloaded = true
-end)
-local M = Tabs['UI Settings']:AddLeftGroupbox('Menu')
-M:AddButton('Unload', function() Library:Unload() end)
-M:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', {
-Default = 'End', NoUI = true, Text = 'Menu keybind' })
-Library.ToggleKeybind = Options.MenuKeybind
-ThemeManager:SetLibrary(Library); SaveManager:SetLibrary(Library)
-SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })
-ThemeManager:SetFolder('MyScriptHub'); SaveManager:SetFolder('MyScriptHub/hoops')
-SaveManager:BuildConfigSection(Tabs['UI Settings'])
-ThemeManager:ApplyToTab(Tabs['UI Settings'])
-SaveManager:LoadAutoloadConfig()
-print('[Hoops] loaded on PC | menu: End')
-end
+print('[Hoops] Loaded Practical Scripts | Platform:', IsMobile and 'Mobile (Fluent)' or 'PC (LinoriaLib)')
