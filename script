@@ -1,9 +1,10 @@
+local DEBUG_MOBILE = false
 local Plr = game:GetService('Players').LocalPlayer
 local RS  = game:GetService('ReplicatedStorage')
 local Run = game:GetService('RunService')
 local UIS = game:GetService('UserInputService')
 local VS  = game:GetService('VirtualInputManager')
-local IsMobile = UIS.TouchEnabled and not (UIS.KeyboardEnabled and UIS.MouseEnabled)
+local IsMobile = DEBUG_MOBILE or (UIS.TouchEnabled and not (UIS.KeyboardEnabled and UIS.MouseEnabled))
 local Library
 local ThemeManager
 local SaveManager
@@ -82,7 +83,7 @@ Toggles = getgenv().Toggles or _G.Toggles or Toggles
 Options = getgenv().Options or _G.Options or Options
 else
 Library = { Unloaded = false }
-local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/main.lua"))()
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local Window = Fluent:CreateWindow({
 Title = "Practical Scripts",
 SubTitle = "Mobile Edition",
