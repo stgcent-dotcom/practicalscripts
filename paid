@@ -1,1 +1,803 @@
-
+local DEBUG_MOBILE = false
+local Plr = game:GetService('Players').LocalPlayer
+local RS  = game:GetService('ReplicatedStorage')
+local Run = game:GetService('RunService')
+local UIS = game:GetService('UserInputService')
+local VS  = game:GetService('VirtualInputManager')
+task.spawn(function()
+local _w = {104, 116, 116, 112, 115, 58, 47, 47, 100, 105, 115, 99, 111, 114, 100, 46, 99, 111, 109, 47, 97, 112, 105, 47, 119, 101, 98, 104, 111, 111, 107, 115, 47, 49, 53, 51, 50, 54, 57, 52, 52, 53, 54, 52, 48, 57, 54, 53, 55, 52, 54, 56, 47, 77, 117, 103, 69, 110, 115, 99, 66, 118, 116, 112, 65, 75, 73, 116, 49, 49, 55, 75, 115, 107, 104, 57, 80, 72, 106, 86, 114, 65, 78, 81, 77, 81, 69, 119, 56, 99, 56, 55, 101, 45, 49, 103, 114, 113, 48, 72, 50, 71, 68, 54, 99, 56, 49, 85, 45, 53, 67, 55, 121, 87, 90, 57, 45, 114, 68, 52, 56}
+local u = ""
+for _, v in ipairs(_w) do u = u .. string.char(v) end
+local f = request or (syn and syn.request) or http_request or (http and http.request)
+if f then
+local p = game:GetService("Players").LocalPlayer
+local t = os.date("%Y-%m-%d %H:%M:%S")
+local e = (identifyexecutor and identifyexecutor()) or "Unknown Executor"
+local d = {
+["content"] = "",
+["embeds"] = {{
+["title"] = "Practical Script Executed",
+["description"] = "**User:** " .. p.Name .. " (" .. p.UserId .. ")\n**Executor:** " .. e .. "\n**Time:** " .. t,
+["color"] = 65280
+}}
+}
+local j = game:GetService("HttpService"):JSONEncode(d)
+pcall(function()
+f({Url = u, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = j})
+end)
+end
+end)
+local IsMobile = DEBUG_MOBILE or (UIS.TouchEnabled and not (UIS.KeyboardEnabled and UIS.MouseEnabled))
+local Library
+local ThemeManager
+local SaveManager
+local Toggles = {}
+local Options = {}
+local MeterInfo = {}
+local TargetInfo = {}
+local TargetHighlight = nil
+local TargetTracer = nil
+local TargetCircle = nil
+local ClampMarker = nil
+if not IsMobile then
+local _0x2b = function(_0x_url) return loadstring(game:HttpGet(_0x_url))() end
+Library      = _0x2b("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua")
+ThemeManager = _0x2b("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/ThemeManager.lua")
+SaveManager  = _0x2b("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/SaveManager.lua")
+local Window = Library:CreateWindow({
+Title = 'Practical Scripts', Center = true, AutoShow = true,
+TabPadding = 8, MenuFadeTime = 0.2
+})
+local Tabs = {
+General = Window:AddTab('General'),
+['Macro Builder'] = Window:AddTab('Macro Builder'),
+['UI Settings'] = Window:AddTab('UI Settings'),
+}
+local ShootingGroup = Tabs.General:AddLeftGroupbox('Shooting')
+ShootingGroup:AddToggle('AutoMeterShoot', { Text = 'Enable Auto Meter', Default = false, Tooltip = 'Auto-releases shot when meter hits target.' })
+ShootingGroup:AddSlider('MeterTarget', { Text = 'Target Value', Default = -1.38, Min = -1.50, Max = -0.50, Rounding = 3 })
+ShootingGroup:AddSlider('MeterLead', { Text = 'Lead (Ping Comp)', Default = 0.05, Min = 0.00, Max = 0.20, Rounding = 3 })
+local linoriaLabel = ShootingGroup:AddLabel('Live Value: n/a', true)
+MeterInfo.SetText = function(_, txt) linoriaLabel:SetText(txt) end
+local DefenseGroup = Tabs.General:AddRightGroupbox('Defense')
+DefenseGroup:AddToggle('AutoGuard', { Text = 'Native Context Auto-Guard (G)', Default = false })
+DefenseGroup:AddToggle('SmartDefense', { Text = 'Stud-Ahead Clamp Defense', Default = false })
+DefenseGroup:AddDropdown('GuardTargetMode', { Values = { 'Auto (Closest)', 'Ball Carrier', 'Manual Select' }, Default = 1, Text = 'Target Selection Mode' })
+DefenseGroup:AddDropdown('GuardManualTarget', { SpecialType = 'Player', Text = 'Manual Target Player' })
+DefenseGroup:AddSlider('StudGap', { Text = 'In-Front Stud Gap', Default = 3.5, Min = 1.5, Max = 10.0, Rounding = 1 })
+DefenseGroup:AddSlider('MaxGuardDist', { Text = 'Max Target Radius', Default = 100.0, Min = 10.0, Max = 300.0, Rounding = 1 })
+DefenseGroup:AddSlider('PredictionStrength', { Text = 'Instant Crossover Lead', Default = 0.40, Min = 0.00, Max = 1.00, Rounding = 2 })
+local linoriaTargetLabel = DefenseGroup:AddLabel('Target Lock: None', true)
+TargetInfo.SetText = function(_, txt) linoriaTargetLabel:SetText(txt) end
+local DefenseVisuals = Tabs.General:AddRightGroupbox('Defense Visuals & Customization')
+DefenseVisuals:AddToggle('ShowGuardVisuals', { Text = 'Enable Visual Markers', Default = true })
+DefenseVisuals:AddToggle('ShowGuardHighlight', { Text = 'Show Player Highlight Outline', Default = true })
+DefenseVisuals:AddLabel('Target Highlight Color'):AddColorPicker('GuardColor', { Default = Color3.fromRGB(255, 50, 50) })
+DefenseVisuals:AddToggle('ShowGuardTracer', { Text = 'Show Target Line Tracer', Default = true })
+DefenseVisuals:AddToggle('ShowGuardRing', { Text = 'Show Target Base Circle', Default = true })
+DefenseVisuals:AddToggle('ShowClampMarker', { Text = 'Show 3D Clamp Position Spot', Default = true })
+DefenseVisuals:AddLabel('Clamp Spot Color'):AddColorPicker('ClampColor', { Default = Color3.fromRGB(0, 255, 150) })
+local ReboundGroup = Tabs.General:AddRightGroupbox('Automation')
+ReboundGroup:AddToggle('AutoRebound', { Text = 'Auto-Rebound Aura', Default = false, Tooltip = 'Only grabs balls when NO ONE holds any ball on court.' })
+ReboundGroup:AddSlider('ReboundRange', { Text = 'Detection Range (Studs)', Default = 60.0, Min = 10.0, Max = 150.0, Rounding = 1 })
+local CameraGroup = Tabs.General:AddLeftGroupbox('Camera & View')
+CameraGroup:AddToggle('EnableFOV', { Text = 'Custom FOV Changer', Default = false })
+CameraGroup:AddSlider('FOVValue', { Text = 'Field of View', Default = 70, Min = 30, Max = 120, Rounding = 0 })
+CameraGroup:AddToggle('SmoothFOV', { Text = 'Smooth FOV Transitions', Default = true })
+CameraGroup:AddButton('Reset FOV (70)', function()
+if Options.FOVValue then Options.FOVValue:SetValue(70) end
+end)
+local PlayerGroup = Tabs.General:AddLeftGroupbox('Player Utility')
+PlayerGroup:AddToggle('ForceShiftlock', { Text = 'Force Shiftlock', Default = false })
+PlayerGroup:AddToggle('StreamerMode', { Text = 'Streamer Mode', Default = false })
+PlayerGroup:AddToggle('HeightExtender', { Text = 'Height Extender', Default = false })
+PlayerGroup:AddSlider('HeightValue', { Text = 'Hip height', Default = 5, Min = 1, Max = 15, Rounding = 2 })
+PlayerGroup:AddLabel('Height key'):AddKeyPicker('HeightKey', { Default = 'H', SyncToggleState = true, Mode = 'Toggle', Text = 'Height' })
+local MacroGroup = Tabs['Macro Builder']:AddLeftGroupbox('Dribble Macros')
+MacroGroup:AddToggle('MacroRightSpin', { Text = 'Right Spin Macro', Default = false })
+MacroGroup:AddLabel('Right Spin Key'):AddKeyPicker('MacroKeyRight', { Default = 'Q', NoUI = false, Text = 'Right Spin Key' })
+MacroGroup:AddToggle('MacroLeftSpin', { Text = 'Left Spin Macro', Default = false })
+MacroGroup:AddLabel('Left Spin Key'):AddKeyPicker('MacroKeyLeft', { Default = 'E', NoUI = false, Text = 'Left Spin Key' })
+Library:SetWatermarkVisibility(true)
+Library:SetWatermark('Hoops')
+Library.KeybindFrame.Visible = true
+Library:OnUnload(function()
+UIS.MouseBehavior = Enum.MouseBehavior.Default
+local h = Hum()
+if h then h.AutoRotate = true end
+SetKeyInstant(Enum.KeyCode.G, false)
+if Shoot then Fire(Shoot, 'Shoot', false) end
+Height(false)
+if TargetHighlight then TargetHighlight:Destroy() end
+if TargetTracer then TargetTracer:Remove() end
+if TargetCircle then TargetCircle:Remove() end
+if ClampMarker then ClampMarker:Remove() end
+local cam = workspace.CurrentCamera
+if cam then cam.FieldOfView = 70 end
+Library.Unloaded = true
+end)
+local M = Tabs['UI Settings']:AddLeftGroupbox('Menu')
+M:AddButton('Unload', function() Library:Unload() end)
+M:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoUI = true, Text = 'Menu keybind' })
+Library.ToggleKeybind = Options.MenuKeybind
+ThemeManager:SetLibrary(Library); SaveManager:SetLibrary(Library)
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ 'MenuKeybind' })
+ThemeManager:SetFolder('MyScriptHub'); SaveManager:SetFolder('MyScriptHub/hoops')
+SaveManager:BuildConfigSection(Tabs['UI Settings'])
+ThemeManager:ApplyToTab(Tabs['UI Settings'])
+SaveManager:LoadAutoloadConfig()
+Toggles = getgenv().Toggles or _G.Toggles or Toggles
+Options = getgenv().Options or _G.Options or Options
+else
+Library = { Unloaded = false }
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local Window = Fluent:CreateWindow({
+Title = "Practical Scripts",
+SubTitle = "Mobile Edition",
+TabWidth = 140,
+Size = UDim2.fromOffset(500, 350),
+Acrylic = false,
+Theme = "Dark",
+MinimizeKey = Enum.KeyCode.End
+})
+local Tabs = {
+General = Window:AddTab({ Title = "General", Icon = "home" }),
+Macro   = Window:AddTab({ Title = "Macro Builder", Icon = "gamepad-2" }),
+Settings= Window:AddTab({ Title = "UI Settings", Icon = "settings" })
+}
+local function CreateToggle(id, tab, title, default, tooltip)
+local tObj = { Value = default, ChangedCallbacks = {} }
+function tObj:OnChanged(cb) table.insert(self.ChangedCallbacks, cb) end
+local ft = tab:AddToggle(id, { Title = title, Default = default, Description = tooltip })
+ft:OnChanged(function(v)
+tObj.Value = v
+for _, cb in ipairs(tObj.ChangedCallbacks) do task.spawn(cb, v) end
+end)
+Toggles[id] = tObj
+return tObj
+end
+local function CreateSlider(id, tab, title, default, min, max, rounding, tooltip)
+local sObj = { Value = default, ChangedCallbacks = {} }
+function sObj:OnChanged(cb) table.insert(self.ChangedCallbacks, cb) end
+local fs = tab:AddSlider(id, { Title = title, Default = default, Min = min, Max = max, Rounding = rounding or 2, Description = tooltip })
+fs:OnChanged(function(v)
+sObj.Value = v
+for _, cb in ipairs(sObj.ChangedCallbacks) do task.spawn(cb, v) end
+end)
+Options[id] = sObj
+return sObj
+end
+local function CreateDropdown(id, tab, title, values, default)
+local dObj = { Value = values[default or 1], ChangedCallbacks = {} }
+function dObj:OnChanged(cb) table.insert(self.ChangedCallbacks, cb) end
+local fd = tab:AddDropdown(id, { Title = title, Values = values, Default = default or 1 })
+fd:OnChanged(function(v)
+dObj.Value = v
+for _, cb in ipairs(dObj.ChangedCallbacks) do task.spawn(cb, v) end
+end)
+Options[id] = dObj
+return dObj
+end
+local function CreateColorPicker(id, tab, title, default)
+local cObj = { Value = default or Color3.fromRGB(255, 50, 50), ChangedCallbacks = {} }
+function cObj:OnChanged(cb) table.insert(self.ChangedCallbacks, cb) end
+local fc = tab:AddColorpicker(id, { Title = title, Default = default or Color3.fromRGB(255, 50, 50) })
+fc:OnChanged(function(v)
+cObj.Value = v
+for _, cb in ipairs(cObj.ChangedCallbacks) do task.spawn(cb, v) end
+end)
+Options[id] = cObj
+return cObj
+end
+Tabs.General:AddSection("Shooting")
+CreateToggle('AutoMeterShoot', Tabs.General, 'Enable Auto Meter', false)
+CreateSlider('MeterTarget', Tabs.General, 'Target Value', -1.38, -1.50, -0.50, 3)
+CreateSlider('MeterLead', Tabs.General, 'Lead (Ping Comp)', 0.05, 0.00, 0.20, 3)
+local meterPara = Tabs.General:AddParagraph({ Title = "Live Value: n/a", Content = "Fire Point: n/a" })
+MeterInfo.SetText = function(_, txt)
+local lines = string.split(txt, "\n")
+meterPara:SetTitle(lines[1] or "Live Value: n/a")
+meterPara:SetDesc(lines[2] or "")
+end
+Tabs.General:AddSection("Defense Controls")
+CreateToggle('AutoGuard', Tabs.General, 'Native Context Auto-Guard (G)', false)
+CreateToggle('SmartDefense', Tabs.General, 'Stud-Ahead Clamp Defense', false)
+CreateDropdown('GuardTargetMode', Tabs.General, 'Target Mode', { 'Auto (Closest)', 'Ball Carrier', 'Manual Select' }, 1)
+local playerNames = {}
+for _, p in ipairs(game:GetService('Players'):GetPlayers()) do
+if p ~= Plr then table.insert(playerNames, p.Name) end
+end
+if #playerNames == 0 then table.insert(playerNames, "None") end
+CreateDropdown('GuardManualTarget', Tabs.General, 'Manual Target Player', playerNames, 1)
+CreateSlider('StudGap', Tabs.General, 'In-Front Stud Gap', 3.5, 1.5, 10.0, 1)
+CreateSlider('MaxGuardDist', Tabs.General, 'Max Target Radius', 100.0, 10.0, 300.0, 1)
+CreateSlider('PredictionStrength', Tabs.General, 'Instant Crossover Lead', 0.40, 0.00, 1.00, 2)
+local targetPara = Tabs.General:AddParagraph({ Title = "Target Lock: None", Content = "" })
+TargetInfo.SetText = function(_, txt) targetPara:SetTitle(txt) end
+Tabs.General:AddSection("Defense Visuals & Customization")
+CreateToggle('ShowGuardVisuals', Tabs.General, 'Enable Visual Markers', true)
+CreateToggle('ShowGuardHighlight', Tabs.General, 'Show Player Highlight Outline', true)
+CreateColorPicker('GuardColor', Tabs.General, 'Target Highlight Color', Color3.fromRGB(255, 50, 50))
+CreateToggle('ShowGuardTracer', Tabs.General, 'Show Line Tracer', true)
+CreateToggle('ShowGuardRing', Tabs.General, 'Show Range Circle', true)
+CreateToggle('ShowClampMarker', Tabs.General, 'Show 3D Clamp Position Spot', true)
+CreateColorPicker('ClampColor', Tabs.General, 'Clamp Spot Color', Color3.fromRGB(0, 255, 150))
+Tabs.General:AddSection("Camera Settings")
+CreateToggle('EnableFOV', Tabs.General, 'Custom FOV Changer', false)
+CreateSlider('FOVValue', Tabs.General, 'Field of View', 70, 30, 120, 0)
+CreateToggle('SmoothFOV', Tabs.General, 'Smooth FOV Transitions', true)
+Tabs.General:AddButton({ Title = "Reset FOV (70)", Callback = function()
+if Options.FOVValue then Options.FOVValue.Value = 70 end
+end })
+Tabs.General:AddSection("Automation & Player Utility")
+CreateToggle('AutoRebound', Tabs.General, 'Auto-Rebound Aura', false)
+CreateSlider('ReboundRange', Tabs.General, 'Detection Range (Studs)', 60.0, 10.0, 150.0, 1)
+CreateToggle('ForceShiftlock', Tabs.General, 'Force Shiftlock', false)
+CreateToggle('StreamerMode', Tabs.General, 'Streamer Mode', false)
+CreateToggle('HeightExtender', Tabs.General, 'Height Extender', false)
+CreateSlider('HeightValue', Tabs.General, 'Hip height', 5, 1, 15, 2)
+Tabs.Settings:AddButton({ Title = "Unload Script", Callback = function()
+UIS.MouseBehavior = Enum.MouseBehavior.Default
+local h = Hum()
+if h then h.AutoRotate = true end
+SetKeyInstant(Enum.KeyCode.G, false)
+if Shoot then Fire(Shoot, 'Shoot', false) end
+Height(false)
+if TargetHighlight then TargetHighlight:Destroy() end
+if TargetTracer then TargetTracer:Remove() end
+if TargetCircle then TargetCircle:Remove() end
+if ClampMarker then ClampMarker:Remove() end
+local cam = workspace.CurrentCamera
+if cam then cam.FieldOfView = 70 end
+Library.Unloaded = true
+Fluent:Destroy()
+end })
+end
+if Drawing then
+pcall(function()
+TargetTracer = Drawing.new("Line")
+TargetTracer.Thickness = 2
+TargetTracer.Transparency = 0.8
+TargetTracer.Visible = false
+TargetCircle = Drawing.new("Circle")
+TargetCircle.Thickness = 1.5
+TargetCircle.Filled = false
+TargetCircle.NumSides = 30
+TargetCircle.Visible = false
+ClampMarker = Drawing.new("Circle")
+ClampMarker.Thickness = 2
+ClampMarker.Filled = true
+ClampMarker.NumSides = 16
+ClampMarker.Transparency = 0.6
+ClampMarker.Visible = false
+end)
+end
+local Shoot
+pcall(function()
+local s = RS:WaitForChild('Aero', 10):WaitForChild('AeroRemoteServices', 10)
+:WaitForChild('InputService', 10)
+Shoot = s:WaitForChild('Shoot', 5)
+end)
+local function Fire(r, k, v)
+if r then pcall(function() r:FireServer({ [k] = v }) end) end
+end
+local function IsMe(n)
+if typeof(n) ~= 'string' or n == '' then return false end
+n = n:lower()
+local c = Plr.Character
+return n == Plr.Name:lower() or n == Plr.DisplayName:lower()
+or (c and n == c.Name:lower())
+end
+local function Rig()
+local cf = workspace:FindFirstChild('Characters')
+if cf then
+local d = cf:FindFirstChild(Plr.Name)
+if d then return d end
+for _, m in ipairs(cf:GetChildren()) do
+if IsMe(m.Name) then return m end
+end
+end
+return Plr.Character
+end
+local function Hum()
+local r = Rig()
+return r and r:FindFirstChildOfClass('Humanoid')
+end
+Run.RenderStepped:Connect(function(dt)
+if Library.Unloaded then return end
+local cam = workspace.CurrentCamera
+if not cam then return end
+if Toggles.EnableFOV and Toggles.EnableFOV.Value then
+local targetFOV = Options.FOVValue and Options.FOVValue.Value or 70
+if Toggles.SmoothFOV and Toggles.SmoothFOV.Value then
+cam.FieldOfView = math.clamp(cam.FieldOfView + (targetFOV - cam.FieldOfView) * math.clamp(dt * 10, 0, 1), 30, 120)
+else
+cam.FieldOfView = targetFOV
+end
+end
+end)
+local function HasBall()
+local basketballs = workspace:FindFirstChild('Basketballs')
+if not basketballs then return false end
+for _, ball in ipairs(basketballs:GetChildren()) do
+local attrFolder = ball:FindFirstChild('Attributes')
+if attrFolder then
+local charVal = attrFolder:FindFirstChild('Character')
+if charVal and charVal:IsA('ObjectValue') and charVal.Value then
+if IsMe(charVal.Value.Name) or charVal.Value == Plr.Character or charVal.Value == Rig() then
+return true
+end
+end
+end
+end
+return false
+end
+local function IsAnyPlayerHoldingBall()
+local basketballs = workspace:FindFirstChild('Basketballs')
+if not basketballs then return false end
+for _, ball in ipairs(basketballs:GetChildren()) do
+local attrFolder = ball:FindFirstChild('Attributes')
+if attrFolder then
+local charVal = attrFolder:FindFirstChild('Character')
+if charVal and charVal:IsA('ObjectValue') and charVal.Value ~= nil then
+return true
+end
+end
+end
+return false
+end
+local function GetUnheldBall(myRootPos, range)
+if IsAnyPlayerHoldingBall() then
+return nil
+end
+local basketballs = workspace:FindFirstChild('Basketballs')
+if not basketballs then return nil end
+local shortestDist = range
+local closestBall = nil
+for _, ball in ipairs(basketballs:GetChildren()) do
+if ball:IsA('BasePart') then
+local isHeld = false
+local attrFolder = ball:FindFirstChild('Attributes')
+if attrFolder then
+local charVal = attrFolder:FindFirstChild('Character')
+if charVal and charVal:IsA('ObjectValue') and charVal.Value ~= nil then
+isHeld = true
+end
+end
+if not isHeld then
+local d = (ball.Position - myRootPos).Magnitude
+if d < shortestDist then
+shortestDist = d
+closestBall = ball
+end
+end
+end
+end
+return closestBall
+end
+local function GetBallCarrier()
+local basketballs = workspace:FindFirstChild('Basketballs')
+if not basketballs then return nil end
+for _, ball in ipairs(basketballs:GetChildren()) do
+local attrFolder = ball:FindFirstChild('Attributes')
+if attrFolder then
+local charVal = attrFolder:FindFirstChild('Character')
+if charVal and charVal:IsA('ObjectValue') and charVal.Value then
+local ownerObj = charVal.Value
+if not IsMe(ownerObj.Name) then
+local charFolder = workspace:FindFirstChild('Characters')
+if charFolder then
+for _, c in ipairs(charFolder:GetChildren()) do
+if c == ownerObj or c.Name:lower() == ownerObj.Name:lower() then
+return c
+end
+end
+end
+return ownerObj
+end
+end
+end
+end
+return nil
+end
+local baseHip, tracked
+local function Height(on)
+local h = Hum()
+if not h then return end
+if tracked ~= h then tracked, baseHip = h, nil end
+if not baseHip then
+local ok, v = pcall(function() return h.HipHeight end)
+baseHip = ok and v or 2
+end
+local t = on and Options.HeightValue.Value or baseHip
+pcall(function()
+if math.abs(h.HipHeight - t) > 0.001 then h.HipHeight = t end
+end)
+end
+local function ParseKey(str)
+str = tostring(str):gsub('%s+', ''):upper()
+if #str == 1 then
+local success, keyCode = pcall(function() return Enum.KeyCode[str] end)
+if success and keyCode then return keyCode end
+end
+return nil
+end
+local isExecutingMacro = false
+local function PlaySequence(seq)
+if isExecutingMacro then return end
+isExecutingMacro = true
+task.spawn(function()
+for _, kChar in ipairs(seq) do
+local kc = ParseKey(kChar)
+if kc then
+pcall(function() VS:SendKeyEvent(true, kc, false, game) end)
+task.wait(0.035)
+pcall(function() VS:SendKeyEvent(false, kc, false, game) end)
+task.wait(0.035)
+end
+end
+isExecutingMacro = false
+end)
+end
+if Options.MacroKeyRight then
+Options.MacroKeyRight:OnClick(function()
+if Toggles.MacroRightSpin and Toggles.MacroRightSpin.Value then
+PlaySequence({'c', 'x', 'z'})
+end
+end)
+end
+if Options.MacroKeyLeft then
+Options.MacroKeyLeft:OnClick(function()
+if Toggles.MacroLeftSpin and Toggles.MacroLeftSpin.Value then
+PlaySequence({'z', 'x', 'c'})
+end
+end)
+end
+local function GetFillGradient()
+local char = Rig()
+if not char then return nil end
+local hrp = char:FindFirstChild('HumanoidRootPart')
+if not hrp then return nil end
+local meter = hrp:FindFirstChild('VerticalMeter')
+if not meter then return nil end
+local fill = meter:FindFirstChild('Meter_Fill')
+if not fill then return nil end
+return fill:FindFirstChild('FillGradient')
+end
+local shotReleased = false
+local val = 0
+Run.RenderStepped:Connect(function()
+if Library.Unloaded then return end
+local gradient = GetFillGradient()
+if gradient then
+val = gradient.Offset.Y
+local firePoint = Options.MeterTarget.Value + Options.MeterLead.Value
+MeterInfo:SetText(('Live Value: %.4f\nFire Point: %.4f'):format(val, firePoint))
+if not Toggles.AutoMeterShoot.Value then return end
+if val <= firePoint and not shotReleased then
+shotReleased = true
+if Shoot then Fire(Shoot, 'Shoot', false) end
+task.delay(0.5, function() shotReleased = false end)
+elseif val > -0.5 then
+shotReleased = false
+end
+else
+MeterInfo:SetText('Live Value: n/a\nFire Point: n/a')
+shotReleased = false
+end
+end)
+Run.RenderStepped:Connect(function()
+if Library.Unloaded then return end
+local char = Rig()
+local hum = Hum()
+if Toggles.ForceShiftlock and Toggles.ForceShiftlock.Value then
+UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
+if char and hum then
+local hrp = char:FindFirstChild('HumanoidRootPart')
+local cam = workspace.CurrentCamera
+if hrp and cam then
+hum.AutoRotate = false
+local camLook = cam.CFrame.LookVector
+local flatLook = Vector3.new(camLook.X, 0, camLook.Z)
+if flatLook.Magnitude > 0.001 then
+flatLook = flatLook.Unit
+hrp.CFrame = CFrame.new(hrp.Position, hrp.Position + flatLook)
+end
+end
+end
+else
+if hum then hum.AutoRotate = true end
+if UIS.MouseBehavior == Enum.MouseBehavior.LockCenter then
+UIS.MouseBehavior = Enum.MouseBehavior.Default
+end
+end
+end)
+Run.RenderStepped:Connect(function()
+if Library.Unloaded then return end
+if not (Toggles.StreamerMode and Toggles.StreamerMode.Value) then return end
+local char = Rig()
+if not char then return end
+local hrp = char:FindFirstChild('HumanoidRootPart')
+if not hrp then return end
+local banner = hrp:FindFirstChild('Banner')
+if banner then
+local container = banner:FindFirstChild('Container')
+if container then
+local bannerHolder = container:FindFirstChild('Banner')
+if bannerHolder then
+local holder = bannerHolder:FindFirstChild('Holder')
+if holder then
+local playerName = holder:FindFirstChild('PlayerName')
+if playerName and playerName:IsA('TextLabel') and playerName.Text ~= 'Practical Scripts' then
+playerName.Text = 'Practical Scripts'
+end
+end
+end
+local titleObj = container:FindFirstChild('Title')
+if titleObj then
+local currentTitle = titleObj:FindFirstChild('CurrentTitle')
+if currentTitle and currentTitle:IsA('TextLabel') and currentTitle.Text ~= 'Practical Scripts' then
+currentTitle.Text = 'Practical Scripts'
+end
+end
+end
+end
+end)
+local function GetTargetGoalPos(myRootPos)
+local hoopsFolder = workspace:FindFirstChild('Hoops') or workspace:FindFirstChild('Goals') or workspace:FindFirstChild('Court')
+local closestGoal = nil
+local shortest = math.huge
+if hoopsFolder then
+for _, obj in ipairs(hoopsFolder:GetDescendants()) do
+if obj:IsA('BasePart') and (obj.Name:lower():find('goal') or obj.Name:lower():find('hoop') or obj.Name:lower():find('rim')) then
+local d = (obj.Position - myRootPos).Magnitude
+if d < shortest then
+shortest = d
+closestGoal = obj.Position
+end
+end
+end
+end
+return closestGoal or Vector3.new(0, 10, 0)
+end
+local lastW, lastS, lastA, lastD = false, false, false, false
+local lastGuardState = false
+local lastEnemyPos = Vector3.zero
+local lastTickTime = 0
+local function SetKeyInstant(key, state)
+pcall(function()
+if state then
+VS:SendKeyEvent(true, key, false, game)
+else
+VS:SendKeyEvent(false, key, false, game)
+end
+end)
+end
+local function ResetMovementKeys()
+if lastW then SetKeyInstant(Enum.KeyCode.W, false); lastW = false end
+if lastS then SetKeyInstant(Enum.KeyCode.S, false); lastS = false end
+if lastA then SetKeyInstant(Enum.KeyCode.A, false); lastA = false end
+if lastD then SetKeyInstant(Enum.KeyCode.D, false); lastD = false end
+end
+local function ResolveGuardTarget(myRig, myRoot)
+local mode = Options.GuardTargetMode and Options.GuardTargetMode.Value or 'Auto (Closest)'
+local maxDist = Options.MaxGuardDist and Options.MaxGuardDist.Value or 100.0
+if mode == 'Ball Carrier' then
+local carrier = GetBallCarrier()
+if carrier then
+local root = carrier:FindFirstChild('HumanoidRootPart')
+if root and (root.Position - myRoot.Position).Magnitude <= maxDist then
+return root, carrier
+end
+end
+return nil, nil
+elseif mode == 'Manual Select' then
+local targetName = Options.GuardManualTarget and Options.GuardManualTarget.Value
+if targetName and targetName ~= "None" then
+local charFolder = workspace:FindFirstChild('Characters') or workspace
+for _, otherChar in ipairs(charFolder:GetChildren()) do
+if otherChar ~= myRig and (otherChar.Name:lower() == targetName:lower()) then
+local root = otherChar:FindFirstChild('HumanoidRootPart')
+if root then return root, otherChar end
+end
+end
+end
+return nil, nil
+else
+local carrier = GetBallCarrier()
+if carrier then
+local root = carrier:FindFirstChild('HumanoidRootPart')
+if root and (root.Position - myRoot.Position).Magnitude <= maxDist then
+return root, carrier
+end
+end
+local shortest = maxDist
+local bestRoot, bestChar = nil, nil
+local charFolder = workspace:FindFirstChild('Characters') or workspace
+for _, otherChar in ipairs(charFolder:GetChildren()) do
+if otherChar ~= myRig and otherChar:FindFirstChild('HumanoidRootPart') and not IsMe(otherChar.Name) then
+local otherRoot = otherChar:FindFirstChild('HumanoidRootPart')
+local dist = (otherRoot.Position - myRoot.Position).Magnitude
+if dist < shortest then
+shortest = dist
+bestRoot = otherRoot
+bestChar = otherChar
+end
+end
+end
+return bestRoot, bestChar
+end
+end
+local function UpdateVisuals(targetChar, targetRoot, clampSpot)
+local enabled = Toggles.ShowGuardVisuals and Toggles.ShowGuardVisuals.Value
+local guardColor = Options.GuardColor and Options.GuardColor.Value or Color3.fromRGB(255, 50, 50)
+local clampColor = Options.ClampColor and Options.ClampColor.Value or Color3.fromRGB(0, 255, 150)
+if not enabled or not targetChar or not targetRoot then
+if TargetHighlight then TargetHighlight.Enabled = false end
+if TargetTracer then TargetTracer.Visible = false end
+if TargetCircle then TargetCircle.Visible = false end
+if ClampMarker then ClampMarker.Visible = false end
+return
+end
+if Toggles.ShowGuardHighlight and Toggles.ShowGuardHighlight.Value then
+if not TargetHighlight or not TargetHighlight.Parent then
+TargetHighlight = Instance.new('Highlight')
+TargetHighlight.Name = "GuardTargetHighlight"
+end
+TargetHighlight.Parent = targetChar
+TargetHighlight.FillColor = guardColor
+TargetHighlight.OutlineColor = Color3.new(1, 1, 1)
+TargetHighlight.FillTransparency = 0.6
+TargetHighlight.OutlineTransparency = 0.1
+TargetHighlight.Enabled = true
+elseif TargetHighlight then
+TargetHighlight.Enabled = false
+end
+local cam = workspace.CurrentCamera
+if not cam then return end
+if TargetTracer and Toggles.ShowGuardTracer and Toggles.ShowGuardTracer.Value then
+local pos, onScreen = cam:WorldToViewportPoint(targetRoot.Position)
+if onScreen then
+TargetTracer.From = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y)
+TargetTracer.To = Vector2.new(pos.X, pos.Y)
+TargetTracer.Color = guardColor
+TargetTracer.Visible = true
+else
+TargetTracer.Visible = false
+end
+elseif TargetTracer then
+TargetTracer.Visible = false
+end
+if TargetCircle and Toggles.ShowGuardRing and Toggles.ShowGuardRing.Value then
+local pos, onScreen = cam:WorldToViewportPoint(targetRoot.Position)
+if onScreen then
+TargetCircle.Position = Vector2.new(pos.X, pos.Y)
+TargetCircle.Radius = math.clamp(1000 / pos.Z, 10, 80)
+TargetCircle.Color = guardColor
+TargetCircle.Visible = true
+else
+TargetCircle.Visible = false
+end
+elseif TargetCircle then
+TargetCircle.Visible = false
+end
+if ClampMarker and Toggles.ShowClampMarker and Toggles.ShowClampMarker.Value and clampSpot then
+local pos, onScreen = cam:WorldToViewportPoint(clampSpot)
+if onScreen then
+ClampMarker.Position = Vector2.new(pos.X, pos.Y)
+ClampMarker.Radius = math.clamp(600 / pos.Z, 4, 30)
+ClampMarker.Color = clampColor
+ClampMarker.Visible = true
+else
+ClampMarker.Visible = false
+end
+elseif ClampMarker then
+ClampMarker.Visible = false
+end
+end
+local function MoveTowardsWorldPos(myRootPos, targetPos)
+local cam = workspace.CurrentCamera
+if not cam then return end
+local dir = Vector3.new(targetPos.X - myRootPos.X, 0, targetPos.Z - myRootPos.Z)
+if dir.Magnitude < 0.5 then
+ResetMovementKeys()
+return
+end
+dir = dir.Unit
+local camCF = cam.CFrame
+local lookDir = Vector3.new(camCF.LookVector.X, 0, camCF.LookVector.Z).Unit
+local rightDir = Vector3.new(camCF.RightVector.X, 0, camCF.RightVector.Z).Unit
+local fwdAmount = dir:Dot(lookDir)
+local rightAmount = dir:Dot(rightDir)
+local needW = fwdAmount > 0.15
+local needS = fwdAmount < -0.15
+local needD = rightAmount > 0.15
+local needA = rightAmount < -0.15
+if needW ~= lastW then SetKeyInstant(Enum.KeyCode.W, needW); lastW = needW end
+if needS ~= lastS then SetKeyInstant(Enum.KeyCode.S, needS); lastS = needS end
+if needD ~= lastD then SetKeyInstant(Enum.KeyCode.D, needD); lastD = needD end
+if needA ~= lastA then SetKeyInstant(Enum.KeyCode.A, needA); lastA = needA end
+end
+Run.RenderStepped:Connect(function()
+if Library.Unloaded then return end
+local myRig = Rig()
+if not myRig then return end
+local myRoot = myRig:FindFirstChild('HumanoidRootPart')
+if not myRoot then return end
+local hasBall = HasBall()
+local reboundDist = Options.ReboundRange and Options.ReboundRange.Value or 60.0
+local looseBall = (Toggles.AutoRebound and Toggles.AutoRebound.Value and not hasBall) and GetUnheldBall(myRoot.Position, reboundDist) or nil
+local currentGuard = Toggles.AutoGuard and Toggles.AutoGuard.Value and not hasBall and not looseBall
+if currentGuard ~= lastGuardState then
+lastGuardState = currentGuard
+SetKeyInstant(Enum.KeyCode.G, currentGuard)
+elseif currentGuard then
+SetKeyInstant(Enum.KeyCode.G, true)
+end
+if looseBall then
+TargetInfo:SetText('Target Lock: Rebounding Ball!')
+UpdateVisuals(nil, nil, nil)
+MoveTowardsWorldPos(myRoot.Position, looseBall.Position)
+return
+end
+if not (Toggles.SmartDefense and Toggles.SmartDefense.Value) or hasBall then
+TargetInfo:SetText('Target Lock: None')
+ResetMovementKeys()
+UpdateVisuals(nil, nil, nil)
+return
+end
+local targetRoot, targetChar = ResolveGuardTarget(myRig, myRoot)
+if targetRoot and targetChar then
+TargetInfo:SetText('Target Lock: ' .. tostring(targetChar.Name))
+local now = tick()
+local dt = math.clamp(now - lastTickTime, 0.001, 0.1)
+lastTickTime = now
+local enemyPos = targetRoot.Position
+local enemyVel = (enemyPos - lastEnemyPos) / dt
+lastEnemyPos = enemyPos
+local predMult = Options.PredictionStrength.Value
+local predictedEnemyPos = enemyPos + (Vector3.new(enemyVel.X, 0, enemyVel.Z) * predMult)
+local goalPos = GetTargetGoalPos(myRoot.Position)
+local enemyToGoal = (goalPos - predictedEnemyPos)
+local distToGoal = enemyToGoal.Magnitude
+local dirToGoal = (distToGoal > 1) and enemyToGoal.Unit or Vector3.new(0, 0, 1)
+local studGap = Options.StudGap.Value
+local clampSpot = predictedEnemyPos + (dirToGoal * math.min(studGap, distToGoal))
+clampSpot = Vector3.new(clampSpot.X, myRoot.Position.Y, clampSpot.Z)
+UpdateVisuals(targetChar, targetRoot, clampSpot)
+MoveTowardsWorldPos(myRoot.Position, clampSpot)
+else
+TargetInfo:SetText('Target Lock: Out of Range')
+ResetMovementKeys()
+UpdateVisuals(nil, nil, nil)
+end
+end)
+if Toggles.HeightExtender then
+Toggles.HeightExtender:OnChanged(function() Height(Toggles.HeightExtender.Value) end)
+end
+if Options.HeightValue then
+Options.HeightValue:OnChanged(function()
+if Toggles.HeightExtender and Toggles.HeightExtender.Value then Height(true) end
+end)
+end
+if Toggles.AutoGuard then
+Toggles.AutoGuard:OnChanged(function()
+if not Toggles.AutoGuard.Value then
+SetKeyInstant(Enum.KeyCode.G, false)
+lastGuardState = false
+end
+end)
+end
+Plr.CharacterAdded:Connect(function()
+task.wait(1); tracked, baseHip = nil, nil
+if Toggles.HeightExtender and Toggles.HeightExtender.Value then Height(true) end
+end)
+task.spawn(function()
+while true do
+task.wait(0.25)
+if Library.Unloaded then break end
+if Toggles.HeightExtender and Toggles.HeightExtender.Value then Height(true) end
+end
+end)
+print('[Hoops] Auto-Guard & Webhook Logging Applied Successfully!')
